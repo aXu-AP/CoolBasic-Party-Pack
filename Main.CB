@@ -1,0 +1,30 @@
+SCREEN 800, 600
+
+Const MAIN_UP       = 0                         //T‰ss‰ m‰‰ritell‰‰n vakiot, joilla viitataan eri n‰pp‰imiin
+Const MAIN_DOWN     = 1
+Const MAIN_LEFT     = 2
+Const MAIN_RIGHT    = 3
+Const MAIN_ACTION1  = 4
+Const MAIN_ACTION2  = 5
+
+Dim MAIN_PlayerKeys(3, 5)                       //Taulukko sis‰lt‰‰ 4:lle pelaajalle (0-3) 6 eri n‰pp‰int‰
+
+Function MAIN_KeyHit(PlayerID, Key)             //Korvaa KeyHit()
+    Return KeyHit(MAIN_PlayerKeys(PlayerID, Key))
+End Function
+
+Function MAIN_KeyDown(PlayerID, Key)            //Korvaa KeyDown()
+    Return KeyDown(MAIN_PlayerKeys(PlayerID, Key))
+End Function
+
+Function MAIN_KeyUp(PlayerID, Key)              //Korvaa KeyUp()
+    Return KeyUp(MAIN_PlayerKeys(PlayerID, Key))
+End Function
+
+
+
+
+
+Function MAIN_DrawScreen()                      //Korvaa DrawScreen
+    DrawScreen
+End Function
