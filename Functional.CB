@@ -1,0 +1,8 @@
+//Kutakuinkin jokainen minipeli pit‰‰ kirjaa pelaajien pisteist‰. Ettei jokaiseen minipeliin tarvitse tehd‰ omaa taulukkoa/muistipalaa tai
+//muuta tapaa tallentaa v‰liaikaispisteit‰, luodaan kaikille peleille yhteinen taulukko.
+Dim API_PlayerScore(3)                          //T‰h‰n tallennetaan pelaajien v‰liaikaiset pisteet
+
+
+Function API_DrawScreen()                       //Korvaa DrawScreen
+	DrawScreen
+End Function

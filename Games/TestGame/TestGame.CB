@@ -1,0 +1,12 @@
+//Lis‰t‰‰n peli pelikokoelmaan nimell‰ TestGame (nime‰ tarvitaan muiden tietojen hakemiseen)
+API_AddGame("TestGame")
+
+Function TEST_Game(PlayerCount)
+	Repeat
+		For i = 0 To PlayerCount - 1
+			//Pelaaja voittaa heti kun painaa nappia
+			If API_KeyHit(i, API_ACTION1) Then API_PlayerScore(i) = 1000 : Return 0
+		Next i
+		API_DrawScreen()
+	Forever
+EndFunction

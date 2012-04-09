@@ -1,0 +1,56 @@
+Const API_UP       = 0                          //T‰ss‰ m‰‰ritell‰‰n vakiot, joilla viitataan eri n‰pp‰imiin
+Const API_DOWN     = 1
+Const API_LEFT     = 2
+Const API_RIGHT    = 3
+Const API_ACTION1  = 4
+Const API_ACTION2  = 5
+
+Dim MAIN_PlayerKeys$(3, 5)                      //Taulukko sis‰lt‰‰ 4:lle pelaajalle (0-3) 6 eri n‰pp‰int‰
+
+
+//Lataa joko defeulttiasetukset tai sitten tallennetut jos niit‰ on
+Function MAIN_LoadKeys()
+	MAIN_PlayerKeys(0, MAIN_UP) = "keyboard,200"      //Ylˆs nuoli
+	MAIN_PlayerKeys(0, MAIN_DOWN) = "keyboard,208"    //Alas nuoli
+	MAIN_PlayerKeys(0, MAIN_LEFT) = "keyboard,203"    //Vasen nuoli
+	MAIN_PlayerKeys(0, MAIN_RIGHT) = "keyboard,205"   //Oikea nuoli
+	MAIN_PlayerKeys(0, MAIN_ACTION1) = "keyboard,54"  //Oikea shift
+	MAIN_PlayerKeys(0, MAIN_ACTION2) = "keyboard,221" //Oikea ctrl
+
+	MAIN_PlayerKeys(1, MAIN_UP) = "keyboard,17"       //W
+	MAIN_PlayerKeys(1, MAIN_DOWN) = "keyboard,31"     //S
+	MAIN_PlayerKeys(1, MAIN_LEFT) = "keyboard,30"     //A
+	MAIN_PlayerKeys(1, MAIN_RIGHT) = "keyboard,32"    //D
+	MAIN_PlayerKeys(1, MAIN_ACTION1) = "keyboard,42"  //Vasen shift
+	MAIN_PlayerKeys(1, MAIN_ACTION2) = "keyboard,86"  //<>
+End Function
+
+//Korvaa KeyHit()
+Function API_KeyHit(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyHit(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
+End Function
+
+//Korvaa KeyDown()
+Function API_KeyDown(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyDown(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
+End Function
+
+//Korvaa KeyUp()
+Function API_KeyUp(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyUp(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
+End Function
