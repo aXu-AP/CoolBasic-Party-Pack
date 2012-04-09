@@ -1,38 +1,66 @@
 SCREEN 800, 600
 
-Const API_UP       = 0                         //T‰ss‰ m‰‰ritell‰‰n vakiot, joilla viitataan eri n‰pp‰imiin
-Const API_DOWN     = 1
-Const API_LEFT     = 2
-Const API_RIGHT    = 3
-Const API_ACTION1  = 4
-Const API_ACTION2  = 5
+Const MAIN_UP       = 0                         //T‰ss‰ m‰‰ritell‰‰n vakiot, joilla viitataan eri n‰pp‰imiin
+Const MAIN_DOWN     = 1
+Const MAIN_LEFT     = 2
+Const MAIN_RIGHT    = 3
+Const MAIN_ACTION1  = 4
+Const MAIN_ACTION2  = 5
 
-Dim API_PlayerKeys(3, 5)                       //Taulukko sis‰lt‰‰ 4:lle pelaajalle (0-3) 6 eri n‰pp‰int‰
+Dim MAIN_PlayerKeys$(3, 5)                      //Taulukko sis‰lt‰‰ 4:lle pelaajalle (0-3) 6 eri n‰pp‰int‰
 
-//Lataa joko defeulttiasetukset tai sitten tallennetut jos niit√§ on. Saa t√§ydent√§√§.
-Function API_LoadKeys()
-	default="p1n1,241,p1n3|p2n1,scankoodejan√§in|p3n1,12,123,112||"	'defaulttinapit n√§in aluksi vaikka t√§ss√§. Vaikkapa palkeilla ja pilkuilla eroteltuna pelaajat ja napit. Scankoodit vaikka.
-									'lis√§ohjeimien ilmaisulle voi mietti√§ jonkun merkkaustavan t√§h√§n. vaikka esim wiimote1_A jne.
-									'sama formaatti sitten tallennuksessa niin sama latauskoodi toimii tallennetuillekkin.
-			't√§ss√§ nappuloiden lataus tuosta merkkijonosta.
+
+//Lataa joko defeulttiasetukset tai sitten tallennetut jos niit‰ on
+Function MAIN_LoadKeys()
+	MAIN_PlayerKeys(0, MAIN_UP) = "keyboard,200"      //Ylˆs nuoli
+	MAIN_PlayerKeys(0, MAIN_DOWN) = "keyboard,208"    //Alas nuoli
+	MAIN_PlayerKeys(0, MAIN_LEFT) = "keyboard,203"    //Vasen nuoli
+	MAIN_PlayerKeys(0, MAIN_RIGHT) = "keyboard,205"   //Oikea nuoli
+	MAIN_PlayerKeys(0, MAIN_ACTION1) = "keyboard,54"  //Oikea shift
+	MAIN_PlayerKeys(0, MAIN_ACTION2) = "keyboard,221" //Oikea ctrl
+
+	MAIN_PlayerKeys(1, MAIN_UP) = "keyboard,17"       //W
+	MAIN_PlayerKeys(1, MAIN_DOWN) = "keyboard,31"     //S
+	MAIN_PlayerKeys(1, MAIN_LEFT) = "keyboard,30"     //A
+	MAIN_PlayerKeys(1, MAIN_RIGHT) = "keyboard,32"    //D
+	MAIN_PlayerKeys(1, MAIN_ACTION1) = "keyboard,42"  //Vasen shift
+	MAIN_PlayerKeys(1, MAIN_ACTION2) = "keyboard,86"  //<>
 End Function
 
-Function API_KeyHit(PlayerID, Key)             //Korvaa KeyHit()
-    Return KeyHit(API_PlayerKeys(PlayerID, Key))
+//Korvaa KeyHit()
+Function API_KeyHit(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyHit(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
 End Function
 
-Function API_KeyDown(PlayerID, Key)            //Korvaa KeyDown()
-    Return KeyDown(API_PlayerKeys(PlayerID, Key))
+//Korvaa KeyDown()
+Function API_KeyDown(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyDown(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
 End Function
 
-Function API_KeyUp(PlayerID, Key)              //Korvaa KeyUp()
-    Return KeyUp(API_PlayerKeys(PlayerID, Key))
+//Korvaa KeyUp()
+Function API_KeyUp(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyUp(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
 End Function
 
 
 
 
 
-Function MAIN_DrawScreen()                      //Korvaa DrawScreen
-    DrawScreen
+Function API_DrawScreen()                      	//Korvaa DrawScreen
+	DrawScreen
 End Function
