@@ -1,13 +1,13 @@
 function TEST1_main(message)
 	returnMessage=GAMES_newMessage()
 	messageLength=TYPES_getMessageLength(message)
-	select TYPES_getString(TYPES_getMessageItem(message,0)) 
+	select GAMES_readStringFromMessage(message,0))
 	'viestin ensimmäinen rivi kertoo että mikä viestin tarkoitus on. 
 	'tän voi refaktoroida omaan funktioon jos siltä tuntuu, mutta toistaiseksi mikään ei pakota tarkoitusjuttua olemaan lainkaan niin jätin tämän näin.
 		case "question"
 			for i=1 to messageLength
 				'oletetaan että useampiosaiset viestit alkavat merkkijonolla.
-				question=TYPES_getString(TYPES_getMessageItem(message,0)
+				question=GAMES_readStringFromMessage(message,i)
 				select question 'tähän tiedot pelin logosta, pelaajamäärästä, vaikeustasosta jne.
 					case "name"
 						GAMES_addSringToMessage(returnMessage,question)

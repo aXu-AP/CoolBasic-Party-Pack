@@ -54,3 +54,7 @@ function GAMES_addStringToMessage(message,questionString)
 	return message
 End Function
 
+function GAMES_readStringFromMessage(message, i)
+	return TYPES_getString(TYPES_getMessageItem(message,i)) 
+End Function
+
