@@ -1,0 +1,25 @@
+function TEST1_main(message)
+	returnMessage=GAMES_newMessage()
+	messageLength=TYPES_getMessageLength(message)
+	select GAMES_readStringFromMessage(message,0)
+	'viestin ensimmäinen kohta kertoo että mikä viestin tarkoitus on. 
+		case "question"
+			for i=1 to messageLength
+				'oletetaan että useampiosaiset viestit alkavat merkkijonolla.
+				question=GAMES_readStringFromMessage(message,i)
+				select question 'tähän tiedot pelin logosta, pelaajamäärästä, vaikeustasosta jne.
+					case "name"
+						GAMES_addSringToMessage(returnMessage,question)
+						GAMES_addSringToMessage(returnMessage,"Testipeli1")
+					default
+						GAMES_addSringToMessage(returnMessage,question)
+						GAMES_addSringToMessage(returnMessage,"not supported")
+				
+			next i
+			return returnMessage
+		default
+			'pelin aloitusta ei ole tehty vielä.
+	end select
+	
+	return TYPES_new(TYPES_MESSAGE) 'laitetaan nyt tyhjä paluuviesti kun muuta ei ole tehty. normaalisti tätä riviä ei edes tarvisi suorittaa.
+endfunction
