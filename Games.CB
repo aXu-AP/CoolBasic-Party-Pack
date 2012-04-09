@@ -1,0 +1,60 @@
+include "TEST1.CB"
+
+Const GAMES_QUESTIONS=0
+Const GAMES_PARAMERS =1
+
+function GAMES_Access(gameNumber,message_memblock)
+	select gameNumber
+		case 1 'esimerkkipeli
+			TEST1_main(message_memblock)
+		default
+			return 0; //peliä ei löydy tai läpikäydessä pelit loppuivat
+End Function
+
+function GAMES_Start(number,players,difficulty)
+	'pikakeino jos ei tarvi enempää viestejä välittää pelille. Tämä kasaa perus pelinaloitusviestin. Tähän mennessä on kasassa vain kyselyviestienkasausjuttuja.
+End Function
+
+function GAMES_GetNames()
+	Repeat
+		nimi=GAMES_GetName()
+		if nimi=0 then return names
+		names=names+","+TYPES_GetString(nimi)
+	Forever
+End Funtion
+
+
+function GAMES_countGames()
+	'vähän bloatti tapa laskea mutta ompahan jollekin innokkaammalle korjattavaa :P GetNamesista yksinkertaistamalla menee kans.
+	return countwords(GAMES_GetNames(), ",")	
+End Function
+
+
+function GAMES_getName(gameNumber)
+	message=newQuestion()
+	GAMES_addStringToMessage("name")
+	GAMES_Access(message)
+	return "viestienlukujuttuja ei ollut vielä tätä tehdessä"
+End Function
+
+function GAMES_newQuestion()
+	message=GAMES_newMessage()
+	TYPES_addStringToMessage(message,"question")
+	return message
+End Function
+
+function GAMES_newMessage()
+	message=TYPES_new(TYPES_MESSAGE)
+	return message
+End Function
+
+function GAMES_addStringToMessage(message,questionString)
+	message=TYPES_new(TYPES_MESSAGE)
+	TYPES_addToMessage(message,TYPES_setString(TYPES_new(TYPES_STRING),questionString))
+	return message
+End Function
+
+function GAMES_readStringFromMessage(message, i)
+	return TYPES_getString(TYPES_getMessageItem(message,i)) 
+End Function
+
