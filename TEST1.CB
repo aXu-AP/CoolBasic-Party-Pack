@@ -1,9 +1,8 @@
 function TEST1_main(message)
 	returnMessage=GAMES_newMessage()
 	messageLength=TYPES_getMessageLength(message)
-	select GAMES_readStringFromMessage(message,0))
-	'viestin ensimmäinen rivi kertoo että mikä viestin tarkoitus on. 
-	'tän voi refaktoroida omaan funktioon jos siltä tuntuu, mutta toistaiseksi mikään ei pakota tarkoitusjuttua olemaan lainkaan niin jätin tämän näin.
+	select GAMES_readStringFromMessage(message,0)
+	'viestin ensimmäinen kohta kertoo että mikä viestin tarkoitus on. 
 		case "question"
 			for i=1 to messageLength
 				'oletetaan että useampiosaiset viestit alkavat merkkijonolla.
