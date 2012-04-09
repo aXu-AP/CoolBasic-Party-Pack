@@ -1,60 +1,56 @@
-include "TEST1.CB"
+Include "Games/TestGame/TestGame.CB"
 
-Const GAMES_QUESTIONS=0
-Const GAMES_PARAMERS =1
+//T‰m‰ tyyppikokoelma pit‰‰ listaa kaikista peleist‰ ja niiden tiedoista
+Type MAIN_Game
+	Field Name$
+	Field Desc$
+	Field Controls$
+	Field PlayerSetup
+	Field MaxPlayers
+	
+	Field Logo
+EndType
 
-function GAMES_Access(gameNumber,message_memblock)
-	select gameNumber
-		case 1 'esimerkkipeli
-			TEST1_main(message_memblock)
-		default
-			return 0; //peli√§ ei l√∂ydy tai l√§pik√§ydess√§ pelit loppuivat
-End Function
+//Lis‰‰ pelin pelikokoelmaan. Lis‰tiedot luetaan gamedata.ini tiedostosta
+Function API_AddGame(Name$)
+	nG.MAIN_Game = New(MAIN_Game)
+	nG\Name = Name
+EndFunction
 
-function GAMES_Start(number,players,difficulty)
-	'pikakeino jos ei tarvi enemp√§√§ viestej√§ v√§litt√§√§ pelille. T√§m√§ kasaa perus pelinaloitusviestin. T√§h√§n menness√§ on kasassa vain kyselyviestienkasausjuttuja.
-End Function
+//T‰m‰ muuttuja sis‰lt‰‰ pelien yhteism‰‰r‰n
+Global MAIN_GameCount
 
-function GAMES_GetNames()
-	Repeat
-		nimi=GAMES_GetName()
-		if nimi=0 then return names
-		names=names+","+TYPES_GetString(nimi)
-	Forever
-End Funtion
+//Tarkistaa, onko kaikki pelit ilmoittaneet tietonsa ja lataa logot
+Function MAIN_InitGames()
+	MAIN_GameCount = 0
+	For iG.MAIN_Game = Each MAIN_Game
+		If iG\Name = "" Then MakeError "Pelill‰ ei ole nime‰!"
+		If Not FileExists("Games/" + iG\Name + "/gamedata.ini") Then MakeError "Pelilt‰ " + iG\Name + " puuttuu asetustiedosto!"
+		
+		f = OpenToRead("Games/" + iG\Name + "/gamedata.ini")
+			//todo: lue pelin tiedot tiedostosta
+		CloseFile f
+		
+		err$ = "Minipelin " + iG\Name + " tietoja puuttuu: "
+		If iG\Desc = "" Then err = err + "selite, "
+		If iG\Controls = "" Then err = err + "n‰pp‰inselite, "
+		If iG\PlayerSetup = "" Then err = err + "pelaajien kokoonpano, "
+		If Not FileExists("Games/" + iG\Name + "/logo.png") Then err = err + "logo.png, "
+		//todo: varmista, ettei peleill‰ ole samaa nime‰
+		If err <> "Minipelin " + iG\Name + " tietoja puuttuu: " Then MakeError Left(err, Len(err) - 2) + "!"
+		iG\Logo = LoadImage("Games/" + iG\Name + "/logo.png")
+		
+		MAIN_GameCount = MAIN_GameCount + 1
+	Next iG
+EndFunction
 
-
-function GAMES_countGames()
-	'v√§h√§n bloatti tapa laskea mutta ompahan jollekin innokkaammalle korjattavaa :P GetNamesista yksinkertaistamalla menee kans.
-	return countwords(GAMES_GetNames(), ",")	
-End Function
-
-
-function GAMES_getName(gameNumber)
-	message=newQuestion()
-	GAMES_addStringToMessage("name")
-	GAMES_Access(message)
-	return "viestienlukujuttuja ei ollut viel√§ t√§t√§ tehdess√§"
-End Function
-
-function GAMES_newQuestion()
-	message=GAMES_newMessage()
-	TYPES_addStringToMessage(message,"question")
-	return message
-End Function
-
-function GAMES_newMessage()
-	message=TYPES_new(TYPES_MESSAGE)
-	return message
-End Function
-
-function GAMES_addStringToMessage(message,questionString)
-	message=TYPES_new(TYPES_MESSAGE)
-	TYPES_addToMessage(message,TYPES_setString(TYPES_new(TYPES_STRING),questionString))
-	return message
-End Function
-
-function GAMES_readStringFromMessage(message, i)
-	return TYPES_getString(TYPES_getMessageItem(message,i)) 
-End Function
+//Aloittaa pelin
+Function MAIN_Start(Name$)
+	Select Name
+		Case "TestGame"
+			TEST_Game(PlayerCount)
+		Default
+			MakeError "Peli‰ " + Name + " ei lˆytynyt!"
+	EndSelect
+EndFunction
 
