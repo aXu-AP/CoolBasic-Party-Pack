@@ -48,11 +48,16 @@ function TYPES_increaseMessageLength(messageType)
 	return mem
 End Function
 
-function TYPES_addToMessage(messageType,typeToAdd)
-	mem=TYPES_getMemBlock(messageType)
+function TYPES_addToMessage(message,typeToAdd)
+	mem=TYPES_getMemBlock(message)
 	mem=TYPES_increaseMessageLength(mem) 'otetaan paluu muuttumisen varalta
 	pokeInt mem, TYPES_getMessageLength(t), typeToAdd
-	TYPES_setMemBlokc(messageType,mem)
+	TYPES_setMemBlokc(message,mem)
+End Function
+
+function TYPES_getMessageItem(message,i)
+	mem=TYPES_getMemBlock(message)
+	peekint(mem,(i+1)*4)
 End Function
 
 function TYPES_getMemBlock(t)

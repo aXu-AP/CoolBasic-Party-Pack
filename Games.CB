@@ -1,10 +1,12 @@
+include "TEST1.CB"
+
 Const GAMES_QUESTIONS=0
 Const GAMES_PARAMERS =1
 
 function GAMES_Access(gameNumber,message_memblock)
 	select gameNumber
 		case 1 'esimerkkipeli
-			TEST1_main(parameters_memblock)
+			TEST1_main(message_memblock)
 		default
 			return 0; //peliä ei löydy tai läpikäydessä pelit loppuivat
 End Function
@@ -22,9 +24,9 @@ function GAMES_GetNames()
 End Funtion
 
 
-function GAMES
-	'vähän bloatti tapa laskea mutta ompahan jollekin innokkaammalle korjattavaa :P GetNamesista yksinkertaistamalla menee.
-	return countwords(GAMES_GetNames())	
+function GAMES_countGames()
+	'vähän bloatti tapa laskea mutta ompahan jollekin innokkaammalle korjattavaa :P GetNamesista yksinkertaistamalla menee kans.
+	return countwords(GAMES_GetNames(), ",")	
 End Function
 
 
@@ -36,8 +38,13 @@ function GAMES_getName(gameNumber)
 End Function
 
 function GAMES_newQuestion()
-	message=TYPES_new(TYPES_MESSAGE)
+	message=GAMES_newMessage()
 	TYPES_addStringToMessage(message,"question")
+	return message
+End Function
+
+function GAMES_newMessage()
+	message=TYPES_new(TYPES_MESSAGE)
 	return message
 End Function
 
