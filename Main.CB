@@ -1,24 +1,32 @@
 SCREEN 800, 600
 
-Const MAIN_UP       = 0                         //T‰ss‰ m‰‰ritell‰‰n vakiot, joilla viitataan eri n‰pp‰imiin
-Const MAIN_DOWN     = 1
-Const MAIN_LEFT     = 2
-Const MAIN_RIGHT    = 3
-Const MAIN_ACTION1  = 4
-Const MAIN_ACTION2  = 5
+Const API_UP       = 0                         //T‰ss‰ m‰‰ritell‰‰n vakiot, joilla viitataan eri n‰pp‰imiin
+Const API_DOWN     = 1
+Const API_LEFT     = 2
+Const API_RIGHT    = 3
+Const API_ACTION1  = 4
+Const API_ACTION2  = 5
 
-Dim MAIN_PlayerKeys(3, 5)                       //Taulukko sis‰lt‰‰ 4:lle pelaajalle (0-3) 6 eri n‰pp‰int‰
+Dim API_PlayerKeys(3, 5)                       //Taulukko sis‰lt‰‰ 4:lle pelaajalle (0-3) 6 eri n‰pp‰int‰
 
-Function MAIN_KeyHit(PlayerID, Key)             //Korvaa KeyHit()
-    Return KeyHit(MAIN_PlayerKeys(PlayerID, Key))
+//Lataa joko defeulttiasetukset tai sitten tallennetut jos niit√§ on. Saa t√§ydent√§√§.
+Function API_LoadKeys()
+	default="p1n1,241,p1n3|p2n1,scankoodejan√§in|p3n1,12,123,112||"	'defaulttinapit n√§in aluksi vaikka t√§ss√§. Vaikkapa palkeilla ja pilkuilla eroteltuna pelaajat ja napit. Scankoodit vaikka.
+									'lis√§ohjeimien ilmaisulle voi mietti√§ jonkun merkkaustavan t√§h√§n. vaikka esim wiimote1_A jne.
+									'sama formaatti sitten tallennuksessa niin sama latauskoodi toimii tallennetuillekkin.
+			't√§ss√§ nappuloiden lataus tuosta merkkijonosta.
 End Function
 
-Function MAIN_KeyDown(PlayerID, Key)            //Korvaa KeyDown()
-    Return KeyDown(MAIN_PlayerKeys(PlayerID, Key))
+Function API_KeyHit(PlayerID, Key)             //Korvaa KeyHit()
+    Return KeyHit(API_PlayerKeys(PlayerID, Key))
 End Function
 
-Function MAIN_KeyUp(PlayerID, Key)              //Korvaa KeyUp()
-    Return KeyUp(MAIN_PlayerKeys(PlayerID, Key))
+Function API_KeyDown(PlayerID, Key)            //Korvaa KeyDown()
+    Return KeyDown(API_PlayerKeys(PlayerID, Key))
+End Function
+
+Function API_KeyUp(PlayerID, Key)              //Korvaa KeyUp()
+    Return KeyUp(API_PlayerKeys(PlayerID, Key))
 End Function
 
 
