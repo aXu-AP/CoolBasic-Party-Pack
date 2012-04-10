@@ -1,6 +1,7 @@
-Include "Games.cb"          //Sisältää kaiken minipelien hallintaa varten
 Include "Input.cb"          //Syötteiden korvikefunktiot
 Include "Functional.cb"     //Sekalaisia funktioita
+Include "Games.cb"          //Sisältää kaiken minipelien hallintaa varten
+
 //Resoluutio on vielä mietinnän alla
 SCREEN 800, 600
 

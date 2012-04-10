@@ -1,4 +1,5 @@
 Include "Games/TestGame/TestGame.CB"
+Include "Gamesettings.cb"
 
 //T‰m‰ tyyppikokoelma pit‰‰ listaa kaikista peleist‰ ja niiden tiedoista
 Type MAIN_Game
@@ -7,14 +8,18 @@ Type MAIN_Game
 	Field Controls$
 	Field PlayerSetup
 	Field MaxPlayers
-	
 	Field Logo
 EndType
 
 //Lis‰‰ pelin pelikokoelmaan. Lis‰tiedot luetaan gamedata.ini tiedostosta
 Function API_AddGame(Name$)
+	If Not FileExists("Games/" + Name + "/gamedata.ini") Then MakeError "Pelilt‰ " + Name + " puuttuu asetustiedosto!"		
+    MAIN_ParseSettings("Games/" + Name + "/gamedata.ini")
 	nG.MAIN_Game = New(MAIN_Game)
 	nG\Name = Name
+    nG\Desc = MAIN_GetSetting("Desc")
+    nG\Controls = MAIN_GetSetting("Controls")
+    nG\PlayerSetup = MAIN_GetSetting("PlayerSetup")
 EndFunction
 
 //T‰m‰ muuttuja sis‰lt‰‰ pelien yhteism‰‰r‰n
@@ -25,12 +30,6 @@ Function MAIN_InitGames()
 	MAIN_GameCount = 0
 	For iG.MAIN_Game = Each MAIN_Game
 		If iG\Name = "" Then MakeError "Pelill‰ ei ole nime‰!"
-		If Not FileExists("Games/" + iG\Name + "/gamedata.ini") Then MakeError "Pelilt‰ " + iG\Name + " puuttuu asetustiedosto!"
-		
-		f = OpenToRead("Games/" + iG\Name + "/gamedata.ini")
-			//todo: lue pelin tiedot tiedostosta
-		CloseFile f
-		
 		err$ = "Minipelin " + iG\Name + " tietoja puuttuu: "
 		If iG\Desc = "" Then err = err + "selite, "
 		If iG\Controls = "" Then err = err + "n‰pp‰inselite, "
