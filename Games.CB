@@ -14,7 +14,7 @@ EndType
 //Lis‰‰ pelin pelikokoelmaan. Lis‰tiedot luetaan gamedata.ini tiedostosta
 Function API_AddGame(Name$)
 	If Not FileExists("Games/" + Name + "/gamedata.ini") Then MakeError "Pelilt‰ " + Name + " puuttuu asetustiedosto!"		
-    MAIN_ParseSettings("Games/" + Name + "gamedata.ini")
+    MAIN_ParseSettings("Games/" + Name + "/gamedata.ini")
 	nG.MAIN_Game = New(MAIN_Game)
 	nG\Name = Name
     nG\Desc = MAIN_GetSetting("Desc")
