@@ -1,9 +1,19 @@
 Include "Input.cb"          //Syötteiden korvikefunktiot
 Include "Functional.cb"     //Sekalaisia funktioita
+Include "Gamesettings.cb"
 Include "Games.cb"          //Sisältää kaiken minipelien hallintaa varten
 
 //Resoluutio on vielä mietinnän alla
 SCREEN 800, 600
 
-//Valmistaa pelit pelaamista varten (tällä hetkellä kaatuu epävalmiiseen latausosioon)
-MAIN_InitGames()
+Print "Pelikokoelmassa on seuraavat pelit: "
+Print ""
+For iG.MAIN_Game = Each MAIN_Game
+	Print iG\ID
+	Print "  " + iG\Name
+	Print "  " + iG\Desc
+	Print "  " + iG\Controls
+	Print "  " + iG\PlayerSetup
+	Print "  " + iG\MaxPlayers
+Next iG
+WaitKey

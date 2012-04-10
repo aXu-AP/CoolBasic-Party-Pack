@@ -1,9 +1,9 @@
 //Lis‰t‰‰n peli pelikokoelmaan nimell‰ TestGame (nime‰ tarvitaan muiden tietojen hakemiseen)
-API_AddGame("TestGame")
+API_AddGame("AX00")
 
-Function TEST_Game(PlayerCount)
+Function AX00_Game(GameData)
 	Repeat
-		For i = 0 To PlayerCount - 1
+		For i = 0 To API_GetData(GameInfo, API_PlayerCount) - 1
 			//Pelaaja voittaa heti kun painaa nappia
 			If API_KeyHit(i, API_ACTION1) Then API_PlayerScore(i) = 1000 : Return 0
 		Next i

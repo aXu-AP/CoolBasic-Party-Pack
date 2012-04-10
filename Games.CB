@@ -1,55 +1,88 @@
-Include "Games/TestGame/TestGame.CB"
-Include "Gamesettings.cb"
+//T‰m‰ muuttuja sis‰lt‰‰ pelien yhteism‰‰r‰n (t‰ytyy m‰‰ritell‰ ennen pelien lataamista)
+Global MAIN_GameCount
+
+
+//T‰ss‰ kohtaa ladataan KAIKKI minipelit
+Include "Games/AX00/TestGame.CB"
+
 
 //T‰m‰ tyyppikokoelma pit‰‰ listaa kaikista peleist‰ ja niiden tiedoista
 Type MAIN_Game
+	Field ID$
 	Field Name$
 	Field Desc$
 	Field Controls$
-	Field PlayerSetup
+	Field PlayerSetup$
 	Field MaxPlayers
 	Field Logo
 EndType
 
+
 //Lis‰‰ pelin pelikokoelmaan. Lis‰tiedot luetaan gamedata.ini tiedostosta
-Function API_AddGame(Name$)
-	If Not FileExists("Games/" + Name + "/gamedata.ini") Then MakeError "Pelilt‰ " + Name + " puuttuu asetustiedosto!"		
-    MAIN_ParseSettings("Games/" + Name + "/gamedata.ini")
+Function API_AddGame(ID$)
+	//Tarkistetaan, ettei peli‰ ole viel‰ lis‰tty
+	For iG.MAIN_Game = Each MAIN_Game
+		If iG\ID = ID Then MakeError "Pelikokoelmassa on samalla tunnisteella pelej‰: " + ID + "!"
+	Next iG
+	
+	//Ladataan tiedot
+	If Not FileExists("Games/" + ID + "/gameinfo.ini") Then MakeError "Pelilt‰ " + ID + " puuttuu asetustiedosto!"		
+	MAIN_ParseSettings("Games/" + ID + "/gameinfo.ini")
+	
+	//Lis‰t‰‰n tiedot pelikokoelmaan
 	nG.MAIN_Game = New(MAIN_Game)
-	nG\Name = Name
-    nG\Desc = MAIN_GetSetting("Desc")
-    nG\Controls = MAIN_GetSetting("Controls")
-    nG\PlayerSetup = MAIN_GetSetting("PlayerSetup")
+	nG\ID = ID
+	nG\Name = MAIN_GetSetting("Name")
+	nG\Desc = MAIN_GetSetting("Desc")
+	nG\Controls = MAIN_GetSetting("Controls")
+	nG\PlayerSetup = Upper(Str(MAIN_GetSetting("PlayerSetup")))
+	nG\MaxPlayers = Int(MAIN_GetSetting("MaxPlayers"))
+	
+	//Tarkistetaan, ettei samannimist‰ peli‰ ole viel‰ lis‰tty
+	For iG.MAIN_Game = Each MAIN_Game
+		If iG <> nG And iG\Name = nG\Name Then MakeError "Pelikokoelmassa on samannimisi‰ pelej‰: " + Name + "! (" + nG\ID + " ja " + iG\ID + ")"
+	Next iG
+	
+	//Tutkitaan puuttuvat tiedot ja aiheutetaan virheilmoitus, jos puuttuu pakollisia tietoja
+	If ID = "" Then MakeError "Pelill‰ ei ole nime‰!"
+	err$ = "Minipelin " + ID + " tietoja puuttuu: "
+	If nG\Name = "" Then err = err + "nimi, "
+	If nG\Desc = "" Then err = err + "selite, "
+	If nG\Controls = "" Then err = err + "n‰pp‰inselite, "
+	If nG\PlayerSetup = "" Then err = err + "pelaajien kokoonpano, "
+	If Not FileExists("Games/" + ID + "/logo.png") Then err = err + "logo.png, "
+	
+	If err <> "Minipelin " + ID + " tietoja puuttuu: " Then MakeError Left(err, Len(err) - 2) + "!"
+	
+	//Lis‰t‰‰n oletustiedot, jos puuttuu vapaaehtoisia tietoja
+	If nG\MaxPlayers = 0 Then nG\MaxPlayers = 4
+	
+	nG\Logo = LoadImage("Games/" + ID + "/logo.png")
+	
+	MAIN_GameCount = MAIN_GameCount + 1
 EndFunction
 
-//T‰m‰ muuttuja sis‰lt‰‰ pelien yhteism‰‰r‰n
-Global MAIN_GameCount
 
-//Tarkistaa, onko kaikki pelit ilmoittaneet tietonsa ja lataa logot
-Function MAIN_InitGames()
-	MAIN_GameCount = 0
+//Hakee kokoelmasta pelin ja palauttaa sen osoitteen
+Function MAIN_GetGame(ID$)
 	For iG.MAIN_Game = Each MAIN_Game
-		If iG\Name = "" Then MakeError "Pelill‰ ei ole nime‰!"
-		err$ = "Minipelin " + iG\Name + " tietoja puuttuu: "
-		If iG\Desc = "" Then err = err + "selite, "
-		If iG\Controls = "" Then err = err + "n‰pp‰inselite, "
-		If iG\PlayerSetup = "" Then err = err + "pelaajien kokoonpano, "
-		If Not FileExists("Games/" + iG\Name + "/logo.png") Then err = err + "logo.png, "
-		//todo: varmista, ettei peleill‰ ole samaa nime‰
-		If err <> "Minipelin " + iG\Name + " tietoja puuttuu: " Then MakeError Left(err, Len(err) - 2) + "!"
-		iG\Logo = LoadImage("Games/" + iG\Name + "/logo.png")
-		
-		MAIN_GameCount = MAIN_GameCount + 1
+		If iG\ID = ID Then MakeError "Pelikokoelmassa on samannimisi‰ pelej‰: " + Name + "!"
 	Next iG
 EndFunction
 
+
 //Aloittaa pelin
-Function MAIN_Start(Name$)
-	Select Name
-		Case "TestGame"
-			TEST_Game(PlayerCount)
+Function MAIN_Start(ID$)
+	Select ID
+		Case "AX00"
+			AX00_Game(PlayerCount)
 		Default
 			MakeError "Peli‰ " + Name + " ei lˆytynyt!"
 	EndSelect
 EndFunction
 
+
+//Palauttaa tiedon muistipalasta (todo: sis‰ltˆ)
+Function API_GetData(GameData, DataToGet)
+	Return 0
+EndFunction

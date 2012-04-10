@@ -1,6 +1,6 @@
 /////Funktiot settingsien lukuun by Latexi95
 
-Type Settings
+Type MAIN_Settings
     Field key$
     Field value$
 EndType
@@ -18,12 +18,12 @@ Function MAIN_ParseSettings(filePath$)
                 MakeError "Syntax error in file "+filePath$+" at line "+lineNum
             EndIf
             If CountWords(notComment$,"=") = 2 Then
-                newSetting.Settings = New(Settings)
+                newSetting.MAIN_Settings = New(MAIN_Settings)
                 newSetting\key$ = Lower(Trim(GetWord(notComment$,1,"=")))
                 newSetting\value$ = Trim(GetWord(notComment$,2,"="))
             Else
                 place = InStr(notComment$,"=")
-                newSetting.Settings = New(Settings)
+                newSetting.MAIN_Settings = New(MAIN_Settings)
                 newSetting\key$ = Lower(Trim(Left(notComment$,place-1)))
                 newSetting\value$ = Trim(Mid(notComment,place+1))
             EndIf
@@ -35,7 +35,7 @@ EndFunction
 
 Function MAIN_SaveSettings(filePath$)
     f = OpenToWrite(filePath$)
-    For setting.Settings = Each Settings
+    For setting.MAIN_Settings = Each MAIN_Settings
         WriteLine f,setting\key$ + " = " + setting\value
     Next setting
     CloseFile f     
@@ -43,7 +43,7 @@ EndFunction
 
 Function MAIN_DeleteSetting(key$)
     key$ = Lower(key$)
-    For setting.Settings = Each Settings
+    For setting.MAIN_Settings = Each MAIN_Settings
         If setting\key$ = key Then
             Delete setting
             Return True
@@ -56,7 +56,7 @@ EndFunction
 
 Function MAIN_GetSetting(key$)
     key$ = Lower(key$)
-    For setting.Settings = Each Settings
+    For setting.MAIN_Settings = Each MAIN_Settings
         If setting\key$ = key Then Return setting\value$
     Next setting
     Return ""
@@ -64,7 +64,7 @@ EndFunction
 
 Function MAIN_HasSetting(key$)
     key$ = Lower(key$)
-    For setting.Settings = Each Settings
+    For setting.MAIN_Settings = Each MAIN_Settings
         If setting\key$ = key Then Return True
     Next setting
     Return False
@@ -72,20 +72,20 @@ EndFunction
 
 Function MAIN_SetSetting(key$,value$)
     key$ = Lower(key$)
-    For setting.Settings = Each Settings
+    For setting.MAIN_Settings = Each MAIN_Settings
         If setting\key$ = key Then
             setting\value = value
             Return True
         EndIf
     Next setting
-    newSetting.Settings = New(Settings)
+    newSetting.MAIN_Settings = New(MAIN_Settings)
     newSetting\key = key
     newSetting\value = value
     Return False
 EndFunction
 
 Function MAIN_ClearSettings()
-    For setting.Settings = Each Settings
+    For setting.MAIN_Settings = Each MAIN_Settings
         Delete setting
     Next setting
 EndFunction
