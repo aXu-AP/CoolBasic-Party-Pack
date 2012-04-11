@@ -67,7 +67,6 @@ Function API_AddGame(ID$)
 EndFunction
 
 
-
 //Hakee kokoelmasta pelin ja palauttaa sen osoitteen
 Function MAIN_GetGame(ID$)
 	For iG.MAIN_Game = Each MAIN_Game
@@ -75,12 +74,14 @@ Function MAIN_GetGame(ID$)
 	Next iG
 EndFunction
 
+
 //Pelivalitsin / päävalikko
 //näyttää kokoelman pelit ja käynnistää ne niiden logoa klikkaamalla
 Function MAIN_SelectGame()
-
+	GameData = API_MakeGameData()
+	API_WriteData(GameData, API_PlayerCount, 1)
+	API_WriteData(GameData, API_PlayerSetup, "ALLvsALL")
 	Repeat
-	
 		Text 20,20,"Pelikokoelmassa on seuraavat pelit: "
 	
 		gameCount = 0
@@ -91,12 +92,11 @@ Function MAIN_SelectGame()
 		DrawGame
 		
 		For iG.MAIN_Game = Each MAIN_Game
-		
-			y = 40+gameCount*110
+			y = 40 + gameCount * 110
 			
 			//onko hiiri pelin päällä
 			If( API_MouseInBox(18,y-2,API_RenderW-40,104)) Then
-				If( MouseHit(1)) Then MAIN_Start(iG\ID)
+				If( MouseHit(1)) Then MAIN_Start(iG\ID, GameData)
 				Box 18,y-2,API_RenderW-40,104,0
 			EndIf 
 
@@ -108,31 +108,76 @@ Function MAIN_SelectGame()
 			Text 130,y+80,iG\PlayerSetup + " " + iG\MaxPlayers
 			
 			gameCount = gameCount + 1
-			 
 		Next iG
 		
 		API_DrawScreen()
-	
 	Forever
-
 EndFunction 
 
 
 //Aloittaa pelin
-Function MAIN_Start(ID$)
+Function MAIN_Start(ID$, GameData)
 	MAIN_RunningGameID = ID$ 
 	Select ID
 		Case "AX00"
-			AX00_Game(PlayerCount)
+			AX00_Game(GameData)
 		Case "ME00"
-			ME00_Game(PlayerCount)
+			ME00_Game(GameData)
 		Default
 			MakeError "Peliä " + Name + " ei löytynyt!"
 	EndSelect
 EndFunction
 
 
-//Palauttaa tiedon muistipalasta (todo: sisältö)
+//GameData-palikkaan tallennettavat tiedot (huom. jos muutat, muuta myös GetData ja WriteData funktioiden select-caseja):
+Const API_PlayerCount = 0
+Const API_PlayerSetup = 1
+//Sisältää GameData-palikan koon
+Const API_BlockSize = 2
+
+//Luo GameData-muistipalan
+Function API_MakeGameData()
+	Return MakeMEMBlock(API_BlockSize * 4)
+EndFunction
+
+
+//Palauttaa tiedon muistipalasta
 Function API_GetData(GameData, DataToGet)
-	Return 0
+	If DataToGet >= API_BlockSize Then Return -1
+	
+	Value = PeekInt(GameData, DataToGet * 4)
+	Select DataToGet
+		Case 1  //API_PlayerSetup
+			Select Value
+				Case 0
+					Return "ALLvsALL"
+				Case 1
+					Return "1vsALL"
+				Case 2
+					Return "TEAMvs"
+				Default
+					Return ""
+			EndSelect
+		Default
+			Return Value
+	EndSelect
+EndFunction
+
+
+//Kirjoittaa tiedon muistipalaan (Value on merkkijono, mutta voi sisältää myös numeron)
+Function API_WriteData(GameData, DataToWrite, Value$)
+	If DataToWrite >= API_BlockSize Then Return -1
+	
+	Select DataToWrite
+		Case 1  //API_PlayerSetup
+			Case "ALLvsALL"
+				Value = 0
+			Case "1vsALL"
+				Value = 1
+			Case "TEAMvs"
+				Value = 2
+			Default
+				Value = -1
+	EndSelect
+	PokeInt GameData, DataToWrite * 4, Int(Value)
 EndFunction
