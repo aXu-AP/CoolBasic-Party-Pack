@@ -1,3 +1,9 @@
+
+//Näytön piirtämiseen ja skaalaamiseen tarvittavia muuttujia
+Global API_RenderW, API_RenderH, API_RenderZoom
+Global API_ScreenW, API_ScreenH
+Global MAIN_MidImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
+
 //Kutakuinkin jokainen minipeli pitää kirjaa pelaajien pisteistä. Ettei jokaiseen minipeliin tarvitse tehdä omaa taulukkoa/muistipalaa tai
 //muuta tapaa tallentaa väliaikaispisteitä, luodaan kaikille peleille yhteinen taulukko.
 Dim API_PlayerScore(3)                          //Tähän tallennetaan pelaajien väliaikaiset pisteet
@@ -7,12 +13,57 @@ Dim API_PlayerScore(3)                          //Tähän tallennetaan pelaajien v
 // komponettien erottamiseen. Ensimmäinen numero on pelaajan numero
 // Esim. API_PlayerColor(2,RED)	 
 
-Dim API_PlayerColor(3,3) As Byte 		
+Dim API_PlayerColor(3,3) As Byte 	
 
- //Korvaa DrawScreen
+
+// vaihtaa renderöintiresoluutiota
+Function API_Resolution(w, h)
+
+	API_RenderW = w
+	API_RenderH = h
+
+	API_RenderZoom = Min(RoundDown(Float(API_ScreenW) / API_RenderW), RoundDown(Float(API_ScreenH) / API_RenderH))
+
+	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
+	
+		If MAIN_MidImage Then DeleteImage MAIN_MidImage
+		MAIN_MidImage = MakeImage(API_RenderW, API_RenderH * API_RenderZoom)
+		MAIN_ScreenOffsetX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
+		MAIN_ScreenOffsetY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
+		
+	EndIf
+
+EndFunction
+
+//Piirtää ja skaalaa API_RenderW x API_RenderH kokoisen alueen ruudulta
 Function API_DrawScreen()
+
+	//Skaalataan vain jos ruudun koko ei vastaa haluttua
+	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
+		For y = 0 To API_RenderH - 1
+			For i = 0 To API_RenderZoom
+				CopyBox 0,  y, API_RenderW, 1, 0, y * API_RenderZoom + i, SCREEN(), Image(MAIN_MidImage)
+			Next i
+		Next y
+		
+		Color 0, 0, 0
+		Box 0, 0, API_ScreenW, API_ScreenH
+		DrawToWorld OFF
+		
+		For x = 0 To API_RenderW - 1
+			For i = 0 To API_RenderZoom
+				
+				DestinationX = Int(CameraX()) + x * API_RenderZoom + i - API_ScreenW / 2 + MAIN_ScreenOffsetX
+				DestinationY = Int(-CameraY()) 							- API_ScreenH / 2 + MAIN_ScreenOffsetY
+			
+				CopyBox x, 0, API_RenderZoom, API_RenderH * API_RenderZoom, DestinationX, DestinationY, Image(MAIN_MidImage), SCREEN()
+				
+			Next i
+		Next x
+	EndIf
+	
 	DrawScreen
-End Function
+EndFunction	
 
 //Korvaa LoadImage
 //TODO: virheidenkäsittely kun tiedostoa ei löydy
@@ -24,6 +75,7 @@ End Function
 Function API_MakeObjectFloor()
 	Return MakeObjectFloor() 
 End Function
+
 
 
 //Värjää kuvan pelaajan tunnusvärillä
@@ -74,3 +126,30 @@ Function API_Recolor(img, playerNumber)
 
 	Return img
 End Function 
+
+
+// asettaa näytön resoluution
+// Korvaa Screen komennon
+Function API_Screen( Width=0, Height=0, Windowed=0)
+
+	If (Width=0 And Height=0) Then
+	   SCREEN 0, 0, 0, 0
+	   API_ScreenW = ScreenWidth()
+	   API_ScreenH = ScreenHeight()
+	   
+	Else
+		API_ScreenW = Width
+		API_ScreenH = Height
+		
+		If Not GFXModeExists(API_ScreenW, API_ScreenH, 32) Then Windowed = 1
+	EndIf
+	
+	// aseta samoiksi ettei jää nollaan
+	API_RenderW = API_ScreenW
+	API_RenderW = API_ScreenW
+	
+	SCREEN API_ScreenW, API_ScreenH, 0, Windowed
+	
+	//TODO: lataa aina tarvittavat kuvat ja äänet uudestaan
+	
+EndFunction 
