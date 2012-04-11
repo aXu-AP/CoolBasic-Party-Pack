@@ -1,6 +1,9 @@
 //T‰m‰ muuttuja sis‰lt‰‰ pelien yhteism‰‰r‰n (t‰ytyy m‰‰ritell‰ ennen pelien lataamista)
 Global MAIN_GameCount
 
+//T‰m‰ muuttuja pit‰‰ sis‰ll‰‰n k‰ynniss‰ olevan pelin ID:n
+Global MAIN_RunningGameID As String 
+
 
 //T‰ss‰ kohtaa ladataan KAIKKI minipelit
 Include "Games/AX00/TestGame.CB"
@@ -118,6 +121,7 @@ EndFunction
 
 //Aloittaa pelin
 Function MAIN_Start(ID$)
+	MAIN_RunningGameID = ID$ 
 	Select ID
 		Case "AX00"
 			AX00_Game(PlayerCount)
