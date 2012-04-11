@@ -66,7 +66,7 @@ EndFunction
 //Hakee kokoelmasta pelin ja palauttaa sen osoitteen
 Function MAIN_GetGame(ID$)
 	For iG.MAIN_Game = Each MAIN_Game
-		If iG\ID = ID Then MakeError "Pelikokoelmassa on samannimisiä pelejä: " + Name + "!"
+		If iG\ID = ID Then Return ConvertToInteger(iG)
 	Next iG
 EndFunction
 
