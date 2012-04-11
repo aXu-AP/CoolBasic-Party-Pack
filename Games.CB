@@ -79,8 +79,8 @@ EndFunction
 //näyttää kokoelman pelit ja käynnistää ne niiden logoa klikkaamalla
 Function MAIN_SelectGame()
 	GameData = API_MakeGameData()
-	API_WriteData(GameData, API_PlayerCount, 1)
-	API_WriteData(GameData, API_PlayerSetup, "ALLvsALL")
+	API_PutData(GameData, API_PlayerCount, 2)
+	API_PutData(GameData, API_PlayerSetup, "ALLvsALL")
 	Repeat
 		Text 20,20,"Pelikokoelmassa on seuraavat pelit: "
 	
@@ -165,19 +165,21 @@ EndFunction
 
 
 //Kirjoittaa tiedon muistipalaan (Value on merkkijono, mutta voi sisältää myös numeron)
-Function API_WriteData(GameData, DataToWrite, Value$)
+Function API_PutData(GameData, DataToWrite, Value$)
 	If DataToWrite >= API_BlockSize Then Return -1
 	
 	Select DataToWrite
 		Case 1  //API_PlayerSetup
-			Case "ALLvsALL"
-				Value = 0
-			Case "1vsALL"
-				Value = 1
-			Case "TEAMvs"
-				Value = 2
-			Default
-				Value = -1
+			Select Value
+				Case "ALLvsALL"
+					Value = 0
+				Case "1vsALL"
+					Value = 1
+				Case "TEAMvs"
+					Value = 2
+				Default
+					Value = -1
+			EndSelect
 	EndSelect
 	PokeInt GameData, DataToWrite * 4, Int(Value)
 EndFunction

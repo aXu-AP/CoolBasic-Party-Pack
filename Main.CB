@@ -1,7 +1,6 @@
-
-//Resoluutio ON vielä mietinnän alla
-API_Screen(800,600,1)
-API_Resolution(640,360)
+//Resoluutio on vielä mietinnän alla
+API_Screen(800, 600, 1)
+API_Resolution(640, 360)
 
 Include "Input.cb"          //Syötteiden korvikefunktiot
 Include "Functional.cb"     //Sekalaisia funktioita
@@ -20,4 +19,5 @@ For i = 0 To 3
 	API_PlayerColor(i,BLUE) = 127+128*(col Shr 31) 
 Next i
 
+MAIN_LoadKeys()
 MAIN_SelectGame()

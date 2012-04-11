@@ -18,39 +18,27 @@ Type ME00_Rock
 EndType
 
 Function ME00_Game(GameData)
-
-	MAIN_LoadKeys()
-
 	// later replaced with API
 	SW = API_RenderW
 	SH = API_RenderH
 
 	mediaLocation$ = "Games/ME00/" 
 	
-	//testaa onko GameData vielä PlayerCount
-	//eikä korvattu muistipalalla
-	If (GameData >= 0  And GameData < 5) Then 
-	
-		If (GameData = 0) Then GameData = 1
-	
-		playerCount = GameData
-	
-		//luodaan pelaajille alukset
-		For i=0 To GameData-1
-		
-			s.ME00_Ship = New (ME00_Ship)
-			s\img = API_LoadImage(mediaLocation$+"ship.png")
-			
 
-			API_Recolor(s\img,i)
-			
-			s\player = i
-		
-		Next i
+	playerCount = API_GetData(GameData, API_PlayerCount)
+
+	//luodaan pelaajille alukset
+	For i=0 To playerCount-1
 	
-	Else 
-		MakeError("Pelin ME00 GameData ON virheellinen!")
-	EndIf 
+		s.ME00_Ship = New (ME00_Ship)
+		s\img = API_LoadImage(mediaLocation$+"ship.png")
+		
+
+		API_Recolor(s\img,i)
+		
+		s\player = i
+	
+	Next i
 	
 	background = API_MakeObjectFloor()
 	stars = API_LoadImage(mediaLocation$+"stars.png")
