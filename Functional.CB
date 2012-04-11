@@ -1,4 +1,3 @@
-
 //Näytön piirtämiseen ja skaalaamiseen tarvittavia muuttujia
 Global API_RenderW, API_RenderH, API_RenderZoom
 Global API_ScreenW, API_ScreenH
@@ -8,32 +7,49 @@ Global MAIN_MidImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
 //muuta tapaa tallentaa väliaikaispisteitä, luodaan kaikille peleille yhteinen taulukko.
 Dim API_PlayerScore(3)                          //Tähän tallennetaan pelaajien väliaikaiset pisteet
 
-// Tästä taulukosta löytyy pelaajien värit
-// voidaan käyttää CoolBasicin omia RED, GREEN ja BLUE vakioita
-// komponettien erottamiseen. Ensimmäinen numero on pelaajan numero
-// Esim. API_PlayerColor(2,RED)	 
 
-Dim API_PlayerColor(3,3) As Byte 	
-
-
-// vaihtaa renderöintiresoluutiota
+// Vaihtaa renderöintiresoluutiota
 Function API_Resolution(w, h)
-
 	API_RenderW = w
 	API_RenderH = h
-
-	API_RenderZoom = Min(RoundDown(Float(API_ScreenW) / API_RenderW), RoundDown(Float(API_ScreenH) / API_RenderH))
-
-	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
 	
+	API_RenderZoom = Min(RoundDown(Float(API_ScreenW) / API_RenderW), RoundDown(Float(API_ScreenH) / API_RenderH))
+	
+	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
 		If MAIN_MidImage Then DeleteImage MAIN_MidImage
 		MAIN_MidImage = MakeImage(API_RenderW, API_RenderH * API_RenderZoom)
 		MAIN_ScreenOffsetX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
 		MAIN_ScreenOffsetY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
-		
 	EndIf
-
 EndFunction
+
+
+// Asettaa näytön resoluution
+// Korvaa Screen komennon
+Function API_Screen(Width = 0, Height = 0, Windowed = 0)
+	// Natiiviresoluutio jos 0, 0
+	If (Width = 0 And Height = 0) Then
+	   SCREEN 0, 0, 0, 0
+	   API_ScreenW = ScreenWidth()
+	   API_ScreenH = ScreenHeight()
+	Else
+		API_ScreenW = Width
+		API_ScreenH = Height
+		
+		If Not GFXModeExists(API_ScreenW, API_ScreenH, 32) Then Windowed = 1
+	EndIf
+	
+	// Aseta samoiksi ettei jää nollaan
+	If API_RenderW = 0 Or API_RenderH = 0 Then
+		API_RenderW = API_ScreenW
+		API_RenderW = API_ScreenW
+	EndIf
+	
+	SCREEN API_ScreenW, API_ScreenH, 0, Windowed
+	
+	//TODO: lataa aina tarvittavat kuvat ja äänet uudestaan
+EndFunction 
+
 
 //Piirtää ja skaalaa API_RenderW x API_RenderH kokoisen alueen ruudulta
 Function API_DrawScreen()
@@ -43,6 +59,8 @@ Function API_DrawScreen()
 	//TODO: Pause
 	
 	//TODO: Käyttöliittymäkomponentit
+	
+	//TODO: Simuloi hiirtä kokoruudulla
 
 	//Skaalataan vain jos ruudun koko ei vastaa haluttua
 	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
@@ -57,12 +75,10 @@ Function API_DrawScreen()
 		
 		For x = 0 To API_RenderW - 1
 			For i = 0 To API_RenderZoom
-				
 				DestinationX = Int(CameraX()) + x * API_RenderZoom + i - API_ScreenW / 2 + MAIN_ScreenOffsetX
-				DestinationY = Int(-CameraY()) 							- API_ScreenH / 2 + MAIN_ScreenOffsetY
-			
-				CopyBox x, 0, API_RenderZoom, API_RenderH * API_RenderZoom, DestinationX, DestinationY, Image(MAIN_MidImage), SCREEN()
+				DestinationY = Int(-CameraY())                         - API_ScreenH / 2 + MAIN_ScreenOffsetY
 				
+				CopyBox x, 0, API_RenderZoom, API_RenderH * API_RenderZoom, DestinationX, DestinationY, Image(MAIN_MidImage), SCREEN()
 			Next i
 		Next x
 	EndIf
@@ -78,6 +94,7 @@ Function API_LoadImage(file$)
 	Return LoadImage(file$)
 EndFunction
 
+
 //Korvaa LoadObject
 Function API_LoadObject(file$,rotation)
 	//TODO: virheidenkäsittely kun tiedostoa ei löydy
@@ -86,12 +103,17 @@ Function API_LoadObject(file$,rotation)
 EndFunction
 
 
+//Korvaa MakeObjectFloorin
+Function API_MakeObjectFloor()
+	Return MakeObjectFloor() 
+EndFunction
+
+
 //Etsii tiedostoa pelin kansiosta ja media kansiosta
 //auttaa lyhentämään ladattavien kuvien yms. nimiä
 //Palauttaa polun merkkijonona jos tiedosto löytyy
 //Palauttaa tyhjän merkkijonon jos tiedostoa ei löydy
 Function MAIN_LocateMedia(file$) 
-
 	//TODO: Onko media kansion sijainti lopullinen?
 	gamePath$ = "Games/"+MAIN_RunningGameID+"/" 
 	mediaPath$ = "Media/"
@@ -101,20 +123,15 @@ Function MAIN_LocateMedia(file$)
 	If FileExists(file$) Then Return file$
 	
 	Return ""
-	
 EndFunction 
 
 
-//Korvaa MakeObjectFloorin
-Function API_MakeObjectFloor()
-	Return MakeObjectFloor() 
-EndFunction
-
-//Hiiren koordinaatit renderöintikoordinaatistossa
+//Hiiren x-koordinaatti renderöintikoordinaatistossa
 Function API_MouseX()
 	Return (MouseX()- MAIN_ScreenOffsetX) / API_RenderZoom 
 EndFunction 
 
+//Hiiren y-koordinaatti renderöintikoordinaatistossa
 Function API_MouseY()
 	Return (MouseY()- MAIN_ScreenOffsetY) / API_RenderZoom 
 EndFunction 
@@ -127,6 +144,12 @@ Function API_MouseInBox(x,y,w,h)
 	Return (mx >= x And mx < x+w And my >= y And my< y+h)
 EndFunction 
 
+
+// Tästä taulukosta löytyy pelaajien värit
+// voidaan käyttää CoolBasicin omia RED, GREEN ja BLUE vakioita
+// komponettien erottamiseen. Ensimmäinen numero on pelaajan numero
+// Esim. API_PlayerColor(2,RED)	 
+Dim API_PlayerColor(3,3) As Byte 	
 
 
 //Värjää kuvan pelaajan tunnusvärillä
@@ -183,29 +206,3 @@ Function API_Recolor(img, playerNumber, overlayImg = 0)
 	Return img
 EndFunction 
 
-
-// asettaa näytön resoluution
-// Korvaa Screen komennon
-Function API_Screen( Width=0, Height=0, Windowed=0)
-
-	If (Width=0 And Height=0) Then
-	   SCREEN 0, 0, 0, 0
-	   API_ScreenW = ScreenWidth()
-	   API_ScreenH = ScreenHeight()
-	   
-	Else
-		API_ScreenW = Width
-		API_ScreenH = Height
-		
-		If Not GFXModeExists(API_ScreenW, API_ScreenH, 32) Then Windowed = 1
-	EndIf
-	
-	// aseta samoiksi ettei jää nollaan
-	API_RenderW = API_ScreenW
-	API_RenderW = API_ScreenW
-	
-	SCREEN API_ScreenW, API_ScreenH, 0, Windowed
-	
-	//TODO: lataa aina tarvittavat kuvat ja äänet uudestaan
-	
-EndFunction 
