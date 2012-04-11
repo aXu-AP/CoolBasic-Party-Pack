@@ -1,19 +1,12 @@
+
+//Resoluutio ON vielä mietinnän alla
+//pitää olla joku median uudelleenlataaja tai 
+//vastaava jos tahtoo resoluutiota muuttaa
+SCREEN 800, 600
+
 Include "Input.cb"          //Syötteiden korvikefunktiot
 Include "Functional.cb"     //Sekalaisia funktioita
 Include "Gamesettings.cb"
 Include "Games.cb"          //Sisältää kaiken minipelien hallintaa varten
 
-//Resoluutio on vielä mietinnän alla
-SCREEN 800, 600
-
-Print "Pelikokoelmassa on seuraavat pelit: "
-Print ""
-For iG.MAIN_Game = Each MAIN_Game
-	Print iG\ID
-	Print "  " + iG\Name
-	Print "  " + iG\Desc
-	Print "  " + iG\Controls
-	Print "  " + iG\PlayerSetup
-	Print "  " + iG\MaxPlayers
-Next iG
-WaitKey
+MAIN_SelectGame()
