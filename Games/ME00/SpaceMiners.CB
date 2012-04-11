@@ -65,7 +65,6 @@ Function ME00_Game(GameData)
 	stars = API_LoadImage(mediaLocation$+"stars.png")
 	PaintObject background,stars
 	
-	TranslateCamera SW/2,SH/2
 
 	Repeat
 	

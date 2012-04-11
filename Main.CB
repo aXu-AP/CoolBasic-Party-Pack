@@ -1,6 +1,6 @@
 
 //Resoluutio ON vielä mietinnän alla
-API_Screen(1280,720,1)
+API_Screen(800,600,1)
 API_Resolution(640,360)
 
 Include "Input.cb"          //Syötteiden korvikefunktiot

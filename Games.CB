@@ -85,10 +85,8 @@ Function MAIN_SelectGame()
 	
 		gameCount = 0
 		
-		mx = MouseX() / API_RenderZoom
-		my = MouseY() / API_RenderZoom
-		
-		SetWindow mx+" "+my
+		mx = API_MouseX()
+		my = API_MouseY()
 		
 		DrawGame
 		
@@ -96,9 +94,10 @@ Function MAIN_SelectGame()
 		
 			y = 40+gameCount*110
 			
-			//onko hiiri kuvan päällä
-			If( mx>20 And mx<120 And my>y And my<y+100 And MouseHit(1)) Then
-				MAIN_Start(iG\ID)
+			//onko hiiri pelin päällä
+			If( API_MouseInBox(18,y-2,API_RenderW-40,104)) Then
+				If( MouseHit(1)) Then MAIN_Start(iG\ID)
+				Box 18,y-2,API_RenderW-40,104,0
 			EndIf 
 
 			DrawImage iG\Logo ,20, y
