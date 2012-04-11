@@ -10,19 +10,19 @@ Dim MAIN_PlayerKeys$(3, 5)                      //Taulukko sisältää 4:lle pelaaj
 
 //Lataa joko defeulttiasetukset tai sitten tallennetut jos niitä on
 Function MAIN_LoadKeys()
-	MAIN_PlayerKeys(0, MAIN_UP) = "keyboard,200"      //Ylös nuoli
-	MAIN_PlayerKeys(0, MAIN_DOWN) = "keyboard,208"    //Alas nuoli
-	MAIN_PlayerKeys(0, MAIN_LEFT) = "keyboard,203"    //Vasen nuoli
-	MAIN_PlayerKeys(0, MAIN_RIGHT) = "keyboard,205"   //Oikea nuoli
-	MAIN_PlayerKeys(0, MAIN_ACTION1) = "keyboard,54"  //Oikea shift
-	MAIN_PlayerKeys(0, MAIN_ACTION2) = "keyboard,221" //Oikea ctrl
+	MAIN_PlayerKeys(0, API_UP) = "keyboard,200"      //Ylös nuoli
+	MAIN_PlayerKeys(0, API_DOWN) = "keyboard,208"    //Alas nuoli
+	MAIN_PlayerKeys(0, API_LEFT) = "keyboard,203"    //Vasen nuoli
+	MAIN_PlayerKeys(0, API_RIGHT) = "keyboard,205"   //Oikea nuoli
+	MAIN_PlayerKeys(0, API_ACTION1) = "keyboard,54"  //Oikea shift
+	MAIN_PlayerKeys(0, API_ACTION2) = "keyboard,221" //Oikea ctrl
 
-	MAIN_PlayerKeys(1, MAIN_UP) = "keyboard,17"       //W
-	MAIN_PlayerKeys(1, MAIN_DOWN) = "keyboard,31"     //S
-	MAIN_PlayerKeys(1, MAIN_LEFT) = "keyboard,30"     //A
-	MAIN_PlayerKeys(1, MAIN_RIGHT) = "keyboard,32"    //D
-	MAIN_PlayerKeys(1, MAIN_ACTION1) = "keyboard,42"  //Vasen shift
-	MAIN_PlayerKeys(1, MAIN_ACTION2) = "keyboard,86"  //<>
+	MAIN_PlayerKeys(1, API_UP) = "keyboard,17"       //W
+	MAIN_PlayerKeys(1, API_DOWN) = "keyboard,31"     //S
+	MAIN_PlayerKeys(1, API_LEFT) = "keyboard,30"     //A
+	MAIN_PlayerKeys(1, API_RIGHT) = "keyboard,32"    //D
+	MAIN_PlayerKeys(1, API_ACTION1) = "keyboard,42"  //Vasen shift
+	MAIN_PlayerKeys(1, API_ACTION2) = "keyboard,86"  //<>
 End Function
 
 //Korvaa KeyHit()
