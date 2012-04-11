@@ -1,8 +1,7 @@
 
 //Resoluutio ON vielä mietinnän alla
-//pitää olla joku median uudelleenlataaja tai 
-//vastaava jos tahtoo resoluutiota muuttaa
-SCREEN 800, 600
+API_Screen(800,600,1)
+API_Resolution(640,360)
 
 Include "Input.cb"          //Syötteiden korvikefunktiot
 Include "Functional.cb"     //Sekalaisia funktioita

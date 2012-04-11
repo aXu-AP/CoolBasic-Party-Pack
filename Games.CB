@@ -1,6 +1,9 @@
 //Tämä muuttuja sisältää pelien yhteismäärän (täytyy määritellä ennen pelien lataamista)
 Global MAIN_GameCount
 
+//Tämä muuttuja pitää sisällään käynnissä olevan pelin ID:n
+Global MAIN_RunningGameID As String 
+
 
 //Tässä kohtaa ladataan KAIKKI minipelit
 Include "Games/AX00/TestGame.CB"
@@ -82,16 +85,19 @@ Function MAIN_SelectGame()
 	
 		gameCount = 0
 		
-		mx = MouseX()
-		my = MouseY()
+		mx = API_MouseX()
+		my = API_MouseY()
+		
+		DrawGame
 		
 		For iG.MAIN_Game = Each MAIN_Game
 		
 			y = 40+gameCount*110
 			
-			//onko hiiri kuvan päällä
-			If( mx>20 And mx<120 And my>y And my<y+100 And MouseHit(1)) Then
-				MAIN_Start(iG\ID)
+			//onko hiiri pelin päällä
+			If( API_MouseInBox(18,y-2,API_RenderW-40,104)) Then
+				If( MouseHit(1)) Then MAIN_Start(iG\ID)
+				Box 18,y-2,API_RenderW-40,104,0
 			EndIf 
 
 			DrawImage iG\Logo ,20, y
@@ -114,6 +120,7 @@ EndFunction
 
 //Aloittaa pelin
 Function MAIN_Start(ID$)
+	MAIN_RunningGameID = ID$ 
 	Select ID
 		Case "AX00"
 			AX00_Game(PlayerCount)
