@@ -82,8 +82,12 @@ Function MAIN_SelectGame()
 	
 		gameCount = 0
 		
-		mx = MouseX()
-		my = MouseY()
+		mx = MouseX() / API_RenderZoom
+		my = MouseY() / API_RenderZoom
+		
+		SetWindow mx+" "+my
+		
+		DrawGame
 		
 		For iG.MAIN_Game = Each MAIN_Game
 		
