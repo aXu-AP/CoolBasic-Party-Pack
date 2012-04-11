@@ -1,0 +1,99 @@
+//Lisätään peli pelikokoelmaan nimellä TestGame (nimeä tarvitaan muiden tietojen hakemiseen)
+API_AddGame("ME00")
+
+Type ME00_Ship
+	Field x As Float
+	Field y As Float
+	Field img As integer
+	Field player As Byte
+	Field hp As Float
+	Field coins As integer
+EndType
+
+Type ME00_Rock
+	Field x As Float
+	Field y As Float
+	Field img As integer
+	Field mineral As integer
+EndType
+
+Function ME00_Game(GameData)
+
+	MAIN_LoadKeys()
+
+	// later replaced with API
+	SW = ScreenWidth()
+	SH = ScreenHeight()
+
+	mediaLocation$ = "Games/ME00/" 
+	
+	//testaa onko GameData vielä PlayerCount
+	//eikä korvattu muistipalalla
+	If (GameData >= 0  And GameData < 5) Then 
+	
+		If (GameData = 0) Then GameData = 1
+	
+		playerCount = GameData
+	
+		//luodaan pelaajille alukset
+		For i=0 To GameData-1
+		
+			s.ME00_Ship = New (ME00_Ship)
+			s\img = API_LoadImage(mediaLocation$+"ship.png")
+			
+			col = Rand(1,6)
+			col = col Shl 29
+			API_PlayerColor(i,RED) = 127+128*(col Shr 31) 
+			
+			col = col Shl 1
+			API_PlayerColor(i,GREEN) = 127+128*(col Shr 31) 
+			
+			col = col Shl 1 
+			API_PlayerColor(i,BLUE) = 127+128*(col Shr 31) 
+
+			API_Recolor(s\img,i)
+			
+			s\player = i
+		
+		Next i
+	
+	Else 
+		MakeError("Pelin ME00 GameData ON virheellinen!")
+	EndIf 
+	
+	
+	background = API_MakeObjectFloor()
+	stars = API_LoadImage(mediaLocation$+"stars.png")
+	PaintObject background,stars
+	
+	TranslateCamera SW/2,SH/2
+
+
+	Repeat
+	
+		DrawGame 
+	
+		For s.ME00_Ship=Each ME00_Ship
+		
+			s\y = s\y +  API_KeyDown(s\player, API_DOWN) - API_KeyDown(s\player, API_UP)
+			
+			If ( API_KeyDown(s\player, API_RIGHT) ) Then 
+				s\x = CurveValue(SW/3.0,s\x,50.0) 
+				speed# = CurveValue(7.0,speed#,100.0) 
+			Else
+				s\x = CurveValue(SW/10.0,s\x,100.0)
+				speed# = 1.0
+			EndIf 
+			
+			TranslateCamera speed#,0
+			
+		
+			DrawImage s\img,s\x, s\y
+		
+		Next s
+		
+	
+		API_DrawScreen()
+	Forever
+	
+EndFunction

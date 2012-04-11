@@ -2,7 +2,75 @@
 //muuta tapaa tallentaa väliaikaispisteitä, luodaan kaikille peleille yhteinen taulukko.
 Dim API_PlayerScore(3)                          //Tähän tallennetaan pelaajien väliaikaiset pisteet
 
+// Tästä taulukosta löytyy pelaajien värit
+// voidaan käyttää CoolBasicin omia RED, GREEN ja BLUE vakioita
+// komponettien erottamiseen. Ensimmäinen numero on pelaajan numero
+// Esim. API_PlayerColor(2,RED)	 
 
-Function API_DrawScreen()                       //Korvaa DrawScreen
+Dim API_PlayerColor(3,3) As Byte 		
+
+ //Korvaa DrawScreen
+Function API_DrawScreen()
 	DrawScreen
 End Function
+
+//Korvaa LoadImage
+//TODO: virheidenkäsittely kun tiedostoa ei löydy
+Function API_LoadImage(file$)
+	Return LoadImage(file$) 
+End Function
+
+//Korvaa MakeObjectFloorin
+Function API_MakeObjectFloor()
+	Return MakeObjectFloor() 
+End Function
+
+
+//Värjää kuvan pelaajan tunnusvärillä
+//Väri haetaan API_PlayerColor taulukosta
+//Erityisesti harmaasävyisille kuville
+//Palauttaa kuvan 
+Function API_Recolor(img, playerNumber)
+
+	//Pelaajan värin suhteellinen voimakkuus 0.0 - 1.0
+	redAmount#   = Float(API_PlayerColor(playerNumber,RED))   / 255.0
+	greenAmount# = Float(API_PlayerColor(playerNumber,GREEN)) / 255.0
+	blueAmount#  = Float(API_PlayerColor(playerNumber,BLUE))  / 255.0
+	
+	If ( img <> 0 ) Then 
+
+		//lukittu kuva että saadaan nopeutta
+		Lock Image(img)
+			For x=0 To ImageWidth(img)-1
+				For y=0 To ImageHeight(img)-1
+				
+					//pikselista RGB
+					pixel = GetPixel2 (x,y,Image(img))
+					
+					pixel = pixel Shl 8
+					r = pixel Shr 24
+					
+					pixel = pixel Shl 8
+					g = pixel Shr 24
+					
+					pixel = pixel Shl 8
+					b = pixel Shr 24 
+					
+					// kerrotaan kukin pikseliarvo suhteellisella voimakkuudella
+					r = Float(r) * redAmount# 
+					g = Float(g) * greenAmount# 
+					b = Float(b) * blueAmount# 
+					
+					//RGB:stä pikseli
+					p = b + (g Shl 8) + (r Shl 16) + (255 Shl 24)
+					
+					PutPixel2 x,y,p,Image(img)
+					
+				Next y
+			Next x
+		Unlock Image(img)
+	
+	EndIf 
+
+	Return img
+End Function 
