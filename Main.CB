@@ -8,4 +8,16 @@ Include "Functional.cb"     //Sekalaisia funktioita
 Include "Gamesettings.cb"
 Include "Games.cb"          //Sis‰lt‰‰ kaiken minipelien hallintaa varten
 
+For i = 0 To 3
+	col = Rand(1,6)
+	col = col Shl 29
+	API_PlayerColor(i,RED) = 127+128*(col Shr 31) 
+	
+	col = col Shl 1
+	API_PlayerColor(i,GREEN) = 127+128*(col Shr 31) 
+	
+	col = col Shl 1 
+	API_PlayerColor(i,BLUE) = 127+128*(col Shr 31) 
+Next i
+
 MAIN_SelectGame()
