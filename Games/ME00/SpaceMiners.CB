@@ -22,8 +22,8 @@ Function ME00_Game(GameData)
 	MAIN_LoadKeys()
 
 	// later replaced with API
-	SW = ScreenWidth()
-	SH = ScreenHeight()
+	SW = API_RenderW
+	SH = API_RenderH
 
 	mediaLocation$ = "Games/ME00/" 
 	
@@ -61,13 +61,10 @@ Function ME00_Game(GameData)
 		MakeError("Pelin ME00 GameData ON virheellinen!")
 	EndIf 
 	
-	
 	background = API_MakeObjectFloor()
 	stars = API_LoadImage(mediaLocation$+"stars.png")
 	PaintObject background,stars
 	
-	TranslateCamera SW/2,SH/2
-
 
 	Repeat
 	
@@ -75,19 +72,18 @@ Function ME00_Game(GameData)
 	
 		For s.ME00_Ship=Each ME00_Ship
 		
-			s\y = s\y +  API_KeyDown(s\player, API_DOWN) - API_KeyDown(s\player, API_UP)
+			s\y = s\y + ( API_KeyDown(s\player, API_DOWN) - API_KeyDown(s\player, API_UP) ) * API_RenderZoom
 			
 			If ( API_KeyDown(s\player, API_RIGHT) ) Then 
 				s\x = CurveValue(SW/3.0,s\x,50.0) 
-				speed# = CurveValue(7.0,speed#,100.0) 
+				speed# = CurveValue(7.0 * API_RenderZoom,speed#,100.0) 
 			Else
 				s\x = CurveValue(SW/10.0,s\x,100.0)
-				speed# = 1.0
+				speed# = 1.0 * API_RenderZoom
 			EndIf 
 			
 			TranslateCamera speed#,0
 			
-		
 			DrawImage s\img,s\x, s\y
 		
 		Next s
