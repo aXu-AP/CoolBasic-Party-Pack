@@ -30,8 +30,7 @@ End Function
 //V‰ri haetaan API_PlayerColor taulukosta
 //Erityisesti harmaas‰vyisille kuville
 //Palauttaa kuvan 
-Function API_Recolor(img, playerNumber)
-
+Function API_Recolor(img, playerNumber, overlayImg = 0)
 	//Pelaajan v‰rin suhteellinen voimakkuus 0.0 - 1.0
 	redAmount#   = Float(API_PlayerColor(playerNumber,RED))   / 255.0
 	greenAmount# = Float(API_PlayerColor(playerNumber,GREEN)) / 255.0
@@ -69,8 +68,14 @@ Function API_Recolor(img, playerNumber)
 				Next y
 			Next x
 		Unlock Image(img)
-	
+		
+		//Lis‰t‰‰n p‰‰lle toinen kuva jos se on annettu
+		If (overlayImg <> 0) Then
+			DrawToImage img
+				DrawImage overlayImg, 0, 0
+			DrawToScreen
+		EndIf
 	EndIf 
-
+	
 	Return img
 End Function 
