@@ -22,7 +22,6 @@ Function ME00_Game(GameData)
 	SW = API_RenderW
 	SH = API_RenderH
 
-	mediaLocation$ = "Games/ME00/" 
 	
 
 	playerCount = API_GetData(GameData, API_PlayerCount)
@@ -31,7 +30,7 @@ Function ME00_Game(GameData)
 	For i=0 To playerCount-1
 	
 		s.ME00_Ship = New (ME00_Ship)
-		s\img = API_LoadImage(mediaLocation$+"ship.png")
+		s\img = API_LoadImage("ship.png")
 		
 
 		API_Recolor(s\img,i)

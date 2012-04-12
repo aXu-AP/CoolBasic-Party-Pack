@@ -87,44 +87,6 @@ Function API_DrawScreen()
 EndFunction	
 
 
-//Korvaa LoadImage
-Function API_LoadImage(file$)
-	//TODO: virheidenkäsittely kun tiedostoa ei löydy
-	file$ = Str(MAIN_LocateMedia(file$))
-	Return LoadImage(file$)
-EndFunction
-
-
-//Korvaa LoadObject
-Function API_LoadObject(file$,rotation)
-	//TODO: virheidenkäsittely kun tiedostoa ei löydy
-	file$ = Str(MAIN_LocateMedia(file$))
-	Return LoadObject(file$,rotation)
-EndFunction
-
-
-//Korvaa MakeObjectFloorin
-Function API_MakeObjectFloor()
-	Return MakeObjectFloor() 
-EndFunction
-
-
-//Etsii tiedostoa pelin kansiosta ja media kansiosta
-//auttaa lyhentämään ladattavien kuvien yms. nimiä
-//Palauttaa polun merkkijonona jos tiedosto löytyy
-//Palauttaa tyhjän merkkijonon jos tiedostoa ei löydy
-Function MAIN_LocateMedia(file$) 
-	//TODO: Onko media kansion sijainti lopullinen?
-	gamePath$ = "Games/"+MAIN_RunningGameID+"/" 
-	mediaPath$ = "Media/"
-
-	If (FileExists(gamePath$+file$)) Then Return gamePath$+file$ 
-	If (FileExists(mediaPath$+file$)) Then Return mediaPath$+file$
-	If FileExists(file$) Then Return file$
-	
-	Return ""
-EndFunction 
-
 
 //Hiiren x-koordinaatti renderöintikoordinaatistossa
 Function API_MouseX()

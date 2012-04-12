@@ -1,0 +1,298 @@
+//Funktiot median hallintaan
+
+//Vakiot mediatyyppien erottamiseksi
+Const MAIN_Object = 0
+Const MAIN_Image = 1
+Const MAIN_AnimObject = 2
+Const MAIN_AnimImage = 3
+Const MAIN_Audio = 4
+
+Type MAIN_Media
+	Field Media
+	Field MediaType As Byte
+	Field FileName$
+EndType
+
+
+//Poistaa ladattua mediaa tiedostonimen mukaan.
+//FileName = "": poistaa kaikki
+//FileName = kansio: poistaa kansiosta ladatun median
+//FileName = tiedostonimi: poistaa tietyn tiedoston (huom. sisällytä polku!)
+//FileName = "*CLONE": poistaa kloonimedian (jättää originaalit)
+//FileName = "*OBJ": poistaa kloonatut objektit (*CLONE*OBJ ei eroa tästä)
+//FileName = "*IMG": poistaa kloonatut kuvat (*CLONE*IMG ei eroa tästä)
+Function MAIN_ClearMedia(FileName$ = "")
+	For iM.MAIN_Media = Each MAIN_Media
+		If InStr(iM\FileName, FileName) Then
+			If iM\MediaType = MAIN_Object Then
+				DeleteObject iM\Media
+			ElseIf iM\MediaType = MAIN_Image Then
+				DeleteImage iM\Media
+			ElseIf iM\MediaType = MAIN_Audio Then
+				DeleteSound iM\Media
+			EndIf
+			
+			Delete iM
+		EndIf
+	Next iM
+EndFunction
+
+
+//Kloonaa valmista mediaa
+Function MAIN_CloneMedia(Media)
+	iM.MAIN_Media = ConvertToType(Media)
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = iM\MediaType
+	
+	If iM\MediaType = MAIN_Object Or iM\MediaType = MAIN_AnimObject Then
+		nM\FileName = iM\FileName + "*CLONE*OBJ"
+		nM\Media = CloneObject(iM\Media)
+	ElseIf iM\MediaType = MAIN_Image Or iM\MediaType = MAIN_AnimImage Then
+		nM\FileName = iM\FileName + "*CLONE*IMG"
+		nM\Media = CloneImage(iM\Media)
+	EndIf
+	
+	Return ConvertToInteger(nM)
+EndFunction
+
+
+//Korvaa LoadObject
+Function API_LoadObject(FileName$, Rotation = 1)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_Object Then
+			//Vanhan objektin pyöritysarvon pitää olla uuden pyöritysarvon kerroin, että se sisältää samat kulmat
+			If ObjectInteger(iM\Media) Mod Rotation = 0 Then
+				nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+				Return nM\Media
+			EndIf
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Object
+	iM\FileName = FileName
+	iM\Media = LoadObject(FileName, Rotation)
+	ShowObject iM\Media, OFF
+	ObjectInteger iM\Media, Rotation
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa LoadAnimObject
+Function API_LoadAnimObject(FileName$, Width, Height, Start = 0, Length = 1, Rotation = 1)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_AnimObject Then
+			//Vanhan objektin pyöritysarvon pitää olla uuden pyöritysarvon kerroin, että se sisältää samat kulmat
+			If ObjectInteger(iM\Media) Mod Rotation = 0 Then
+				nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+				Return nM\Media
+			EndIf
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_AnimObject
+	iM\FileName = FileName
+	iM\Media = LoadAnimObject(FileName, Width, Height, Start, Length, Rotation)
+	ShowObject iM\Media, OFF
+	ObjectInteger iM\Media, Rotation
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa MakeObject
+Function API_MakeObject(Rotation = 1)
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Object
+	iM\FileName = "*CLONE*OBJ"  //"klooni" tyhjästä
+	If Rotation = 1 Then
+		iM\Media = MakeObject()
+	Else
+		iM\Media = LoadObject("GlobalMedia/Pixel.bmp", Rotation)
+	EndIf
+	
+	Return iM\Media
+EndFunction
+
+
+//Korvaa CloneObject
+Function API_CloneObject(Object)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Object And iM\MediaType = MAIN_Object Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	MakeError "Kloonattavaa objektia ei löytynyt"
+EndFunction
+
+
+//Korvaa MakeObjectFloorin
+Function API_MakeObjectFloor()
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Object
+	iM\FileName = "*CLONE"  //"klooni" tyhjästä
+	iM\Media = MakeObjectFloor()
+	
+	Return iM\Media
+EndFunction
+
+
+//Korvaa DeleteObject
+Function API_DeleteObject(Object)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Object And iM\MediaType = MAIN_Object Then
+			DeleteObject iM\Media
+			Delete iM
+			Return 0
+		EndIf
+	Next iM
+EndFunction
+
+
+//Korvaa ClearObjects
+Function API_ClearObjects()
+	MAIN_ClearMedia("*CLONE*OBJ")
+EndFunction
+
+
+//Tämänhetkinen objekti objektilistassa
+Global MAIN_CurrentObject
+
+
+//Korvaa InitObjectList
+Function API_InitObjectList()
+	MAIN_CurrentObject = ConvertToInteger(First(MAIN_Media))
+	Return API_NextObject()
+EndFunction
+
+
+//Korvaa NextObject
+Function API_NextObject()
+	iM.MAIN_Media = ConvertToType(MAIN_CurrentObject)
+	Repeat
+		iM = After(iM)
+		If iM = NULL Then
+			MAIN_CurrentObject = ConvertToInteger(First(MAIN_Media))
+			Return 0
+		EndIf
+	Until iM\MediaType = MAIN_Object Or iM\MediaType = MAIN_AnimObject
+	
+	MAIN_CurrentObject = ConvertToInteger(iM)
+	Return iM\Media
+EndFunction
+
+
+//Korvaa LoadImage
+Function API_LoadImage(FileName$)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_Image Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Image
+	iM\FileName = FileName
+	iM\Media = LoadImage(FileName)
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa LoadAnimImage
+Function API_LoadAnimImage(FileName$, Width, Height, Start = 0, Length = 1)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_AnimImage Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_AnimImage
+	iM\FileName = FileName
+	iM\Media = LoadAnimImage(FileName, Width, Height, Start, Length)
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa MakeImage
+Function API_MakeImage(w, h)
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Image
+	iM\FileName = "*CLONE*IMG"  //"klooni" tyhjästä
+	iM\Media = MakeImage(w, h)
+	
+	Return iM\Media
+EndFunction
+
+
+//Korvaa CloneImage
+Function API_CloneImage(Img)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Img And iM\MediaType = MAIN_Image Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	MakeError "Kloonattavaa kuvaa ei löytynyt"
+EndFunction
+
+
+//Korvaa DeleteImage
+Function API_DeleteImage(Img)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Img And iM\MediaType = MAIN_Image Then
+			DeleteImage iM\Media
+			Delete iM
+			Return 0
+		EndIf
+	Next iM
+EndFunction
+
+
+//Etsii tiedostoa pelin kansiosta ja media kansiosta
+//auttaa lyhentämään ladattavien kuvien yms. nimiä.
+//Pelikohtaisen kansion media yliajaa aina globaalin median.
+//Palauttaa polun merkkijonona jos tiedosto löytyy
+//Palauttaa tyhjän merkkijonon jos tiedostoa ei löydy
+Function MAIN_LocateMedia(FileName$) 
+	If MAIN_RunningGameID = "" Then
+		gamePath$ = "GlobalMedia/"
+		mediaPath$ = "GlobalMedia/"
+	Else
+		gamePath$ = "Games/" + MAIN_RunningGameID + "/"
+		mediaPath$ = "GlobalMedia/"
+	EndIf
+	
+	If (FileExists(gamePath$ + FileName$)) Then Return gamePath$ + FileName$ 
+	If (FileExists(mediaPath$ + FileName$)) Then Return mediaPath$ + FileName$
+	If FileExists(file$) Then Return file$
+	
+	Return ""
+EndFunction 
+

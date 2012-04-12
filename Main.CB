@@ -3,6 +3,7 @@ API_Screen(800, 600, 1)
 API_Resolution(640, 360)
 
 Include "Input.cb"          //Syötteiden korvikefunktiot
+Include "Media.cb"          //Median lataaminen, tuhoaminen
 Include "Functional.cb"     //Sekalaisia funktioita
 Include "Gamesettings.cb"
 Include "Games.cb"          //Sisältää kaiken minipelien hallintaa varten
