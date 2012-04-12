@@ -275,6 +275,28 @@ Function API_DeleteImage(Img)
 EndFunction
 
 
+//Korvaa LoadSound
+Function API_LoadSound(FileName$)
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_Sound Then
+			Return iM\Media
+		EndIf
+	Next iM
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Sound
+	nM\FileName = FileName
+	nM\Media = LoadSound(FileName)
+	
+	Return nM\Media
+EndFunction
+
+
+//DeleteSoundille ei ole korviketta, koska ‰‰ni‰ ei voi kloonata
+
+
 //Etsii tiedostoa pelin kansiosta ja media kansiosta
 //auttaa lyhent‰m‰‰n ladattavien kuvien yms. nimi‰.
 //Pelikohtaisen kansion media yliajaa aina globaalin median.

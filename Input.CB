@@ -15,7 +15,7 @@ Function MAIN_LoadKeys()
 	MAIN_PlayerKeys(0, API_LEFT) = "keyboard,203"    //Vasen nuoli
 	MAIN_PlayerKeys(0, API_RIGHT) = "keyboard,205"   //Oikea nuoli
 	MAIN_PlayerKeys(0, API_ACTION1) = "keyboard,54"  //Oikea shift
-	MAIN_PlayerKeys(0, API_ACTION2) = "keyboard,221" //Oikea ctrl
+	MAIN_PlayerKeys(0, API_ACTION2) = "keyboard,157" //Oikea ctrl
 
 	MAIN_PlayerKeys(1, API_UP) = "keyboard,17"       //W
 	MAIN_PlayerKeys(1, API_DOWN) = "keyboard,31"     //S
