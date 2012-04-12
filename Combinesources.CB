@@ -1,0 +1,27 @@
+//Rakentaa projektista yhden ison lähdekooditiedoston
+CombineSources("Main.cb", "CBPP bulk.cb")
+WaitKey
+
+Function CombineSources(Source$, Dest$)
+	DestF = OpenToWrite(Dest)
+		CrawlSource(Source, DestF)
+	CloseFile DestF
+	Print "File output: " + Dest
+EndFunction
+
+
+Function CrawlSource(Source$, DestF)
+	Print Source
+	SourceF = OpenToRead(Source)
+		While Not EOF(SourceF)
+			Lin$ = ReadLine(SourceF)
+			If Lower(Left(Trim(Lin), 7)) = "include" Then
+				Quote = InStr(Lin, Chr(34)) + 1
+				Inc$ = Mid(Lin, Quote, InStr(Lin, Chr(34), Quote) - Quote)
+				CrawlSource(Inc, DestF)
+			Else
+				WriteLine DestF, Lin
+			EndIf
+		Wend
+	CloseFile SourceF
+EndFunction

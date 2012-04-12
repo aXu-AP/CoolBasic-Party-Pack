@@ -1,0 +1,1021 @@
+//Resoluutio on vielä mietinnän alla
+API_Screen(800, 600, 1)
+API_Resolution(640, 360)
+
+Const API_UP       = 0                          //Tässä määritellään vakiot, joilla viitataan eri näppäimiin
+Const API_DOWN     = 1
+Const API_LEFT     = 2
+Const API_RIGHT    = 3
+Const API_ACTION1  = 4
+Const API_ACTION2  = 5
+
+Dim MAIN_PlayerKeys$(3, 5)                      //Taulukko sisältää 4:lle pelaajalle (0-3) 6 eri näppäintä
+
+
+//Lataa joko defeulttiasetukset tai sitten tallennetut jos niitä on
+Function MAIN_LoadKeys()
+	MAIN_PlayerKeys(0, API_UP) = "keyboard,200"      //Ylös nuoli
+	MAIN_PlayerKeys(0, API_DOWN) = "keyboard,208"    //Alas nuoli
+	MAIN_PlayerKeys(0, API_LEFT) = "keyboard,203"    //Vasen nuoli
+	MAIN_PlayerKeys(0, API_RIGHT) = "keyboard,205"   //Oikea nuoli
+	MAIN_PlayerKeys(0, API_ACTION1) = "keyboard,54"  //Oikea shift
+	MAIN_PlayerKeys(0, API_ACTION2) = "keyboard,157" //Oikea ctrl
+
+	MAIN_PlayerKeys(1, API_UP) = "keyboard,17"       //W
+	MAIN_PlayerKeys(1, API_DOWN) = "keyboard,31"     //S
+	MAIN_PlayerKeys(1, API_LEFT) = "keyboard,30"     //A
+	MAIN_PlayerKeys(1, API_RIGHT) = "keyboard,32"    //D
+	MAIN_PlayerKeys(1, API_ACTION1) = "keyboard,42"  //Vasen shift
+	MAIN_PlayerKeys(1, API_ACTION2) = "keyboard,86"  //<>
+End Function
+
+//Korvaa KeyHit()
+Function API_KeyHit(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyHit(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
+End Function
+
+//Korvaa KeyDown()
+Function API_KeyDown(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyDown(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
+End Function
+
+//Korvaa KeyUp()
+Function API_KeyUp(PlayerID, Key)
+	Select GetWord(MAIN_PlayerKeys(PlayerID, Key), 1, ",")
+		Case "keyboard"
+			Return KeyUp(Int(GetWord(MAIN_PlayerKeys(PlayerID, Key), 2, ",")))
+		Default
+			Return False
+	End Select
+End Function
+//Funktiot median hallintaan
+
+//Homma toimii näin: kun latausfunktiota kutsutaan, se tarkistaa, onko saatavilla jo ladattua kuvaa.
+//Jos on, niin palautetaan klooni tästä. Jos ei ole, ladataan kuva ja palautetaan sen klooni (jotta originaalia voidaan vielä käyttää)
+//Poistettaessa kuvia/objekteja poistetaan aina klooni, ellei pääohjelma kutsu MAIN_ClearMedia()
+//Äänen tapauksessa kloonaamisvaihe jätetään pois, ja palautetaan aina originaalia materiaalia. Tästä syystä niille ei ole poistokäskyä ja ne poistetaan vain MAIN_ClearMedia():lla.
+//MakeObject, MakeObjectFloor, MakeEmitter ja MakeImage funktioilla luodut kohteet käsitellään klooneina (koska "originaalia" ei ole olemassa eikä siitä hyödyttäisi muualla)
+//Karttaa varten on vain yksi objekti eikä sitä voida käyttää uudelleen, joten se toimii "perinteiseen" tapaan.
+
+
+//Vakiot mediatyyppien erottamiseksi
+Const MAIN_Object = 0
+Const MAIN_AnimObject = 1
+Const MAIN_Image = 2
+Const MAIN_AnimImage = 3
+Const MAIN_Audio = 4
+
+Global MAIN_MAP
+
+Type MAIN_Media
+	Field Media
+	Field MediaType As Byte
+	Field FileName$
+EndType
+
+
+//Poistaa ladattua mediaa tiedostonimen mukaan.
+//FileName = "": poistaa kaikki
+//FileName = kansio: poistaa kansiosta ladatun median
+//FileName = tiedostonimi: poistaa tietyn tiedoston (huom. sisällytä polku!)
+//FileName = "*CLONE": poistaa kloonimedian (jättää originaalit)
+//FileName = "*OBJ": poistaa kloonatut objektit (*CLONE*OBJ ei eroa tästä)
+//FileName = "*IMG": poistaa kloonatut kuvat (*CLONE*IMG ei eroa tästä)
+Function MAIN_ClearMedia(FileName$ = "")
+	For iM.MAIN_Media = Each MAIN_Media
+		If InStr(iM\FileName, FileName) Then
+			If iM\MediaType = MAIN_Object Then
+				DeleteObject iM\Media
+			ElseIf iM\MediaType = MAIN_Image Then
+				DeleteImage iM\Media
+			ElseIf iM\MediaType = MAIN_Audio Then
+				DeleteSound iM\Media
+			EndIf
+			
+			Delete iM
+		EndIf
+	Next iM
+EndFunction
+
+
+//Kloonaa valmista mediaa
+Function MAIN_CloneMedia(Media)
+	iM.MAIN_Media = ConvertToType(Media)
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = iM\MediaType
+	
+	If iM\MediaType = MAIN_Object Or iM\MediaType = MAIN_AnimObject Then
+		nM\FileName = iM\FileName + "*CLONE*OBJ"
+		nM\Media = CloneObject(iM\Media)
+	ElseIf iM\MediaType = MAIN_Image Or iM\MediaType = MAIN_AnimImage Then
+		nM\FileName = iM\FileName + "*CLONE*IMG"
+		nM\Media = CloneImage(iM\Media)
+	EndIf
+	
+	Return ConvertToInteger(nM)
+EndFunction
+
+
+//Korvaa LoadObject
+Function API_LoadObject(FileName$, Rotation = 1)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_Object Then
+			//Vanhan objektin pyöritysarvon pitää olla uuden pyöritysarvon kerroin, että se sisältää samat kulmat
+			If ObjectInteger(iM\Media) Mod Rotation = 0 Then
+				nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+				Return nM\Media
+			EndIf
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Object
+	iM\FileName = FileName
+	iM\Media = LoadObject(FileName, Rotation)
+	ShowObject iM\Media, OFF
+	ObjectInteger iM\Media, Rotation
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa LoadAnimObject
+Function API_LoadAnimObject(FileName$, Width, Height, Start = 0, Length = 1, Rotation = 1)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_AnimObject Then
+			//Vanhan objektin pyöritysarvon pitää olla uuden pyöritysarvon kerroin, että se sisältää samat kulmat
+			If ObjectInteger(iM\Media) Mod Rotation = 0 Then
+				nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+				Return nM\Media
+			EndIf
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_AnimObject
+	iM\FileName = FileName
+	iM\Media = LoadAnimObject(FileName, Width, Height, Start, Length, Rotation)
+	ShowObject iM\Media, OFF
+	ObjectInteger iM\Media, Rotation
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa MakeObject
+Function API_MakeObject(Rotation = 1)
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Object
+	iM\FileName = "*CLONE*OBJ"  //"klooni" tyhjästä
+	If Rotation = 1 Then
+		iM\Media = MakeObject()
+	Else
+		iM\Media = LoadObject("GlobalMedia/Pixel.bmp", Rotation)
+	EndIf
+	
+	Return iM\Media
+EndFunction
+
+
+//Korvaa CloneObject
+Function API_CloneObject(Object)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Object And iM\MediaType = MAIN_Object Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	MakeError "Kloonattavaa objektia ei löytynyt"
+EndFunction
+
+
+//Korvaa MakeObjectFloorin
+Function API_MakeObjectFloor()
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Object
+	iM\FileName = "*CLONE*OBJ"  //"klooni" tyhjästä
+	iM\Media = MakeObjectFloor()
+	
+	Return iM\Media
+EndFunction
+
+
+//Korvaa DeleteObject
+Function API_DeleteObject(Object)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Object And iM\MediaType = MAIN_Object Or iM\MediaType = MAIN_AnimObject Then
+			//Jos tuhotaan kartta, merkitään se tuhotuksi
+			If MAIN_Map Then
+				If iM = ConvertToType(MAIN_Map) Then MAIN_Map = 0
+			EndIf
+			
+			DeleteObject iM\Media
+			Delete iM
+			Return 0
+		EndIf
+	Next iM
+EndFunction
+
+
+//Korvaa MakeEmitter
+Function API_MakeEmitter(Img, Life)
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Object
+	nM\FileName = "*CLONE*OBJ"
+	nM\Media = MakeEmitter(Img, Life)
+	
+	Return nM\Media
+EndFunction
+
+
+//Korvaa LoadMap
+Function API_LoadMap(FileName$, Tileset$)
+	API_DeleteMap()
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Object
+	nM\FileName = "*CLONE*OBJ"  //karttaa ei voida käyttää uudelleen, joten se on sama merkitä klooniksi
+	
+	If Str(Int(Tileset)) = Tileset Then
+		nM\Media = LoadMap(FileName, Int(Tileset))
+	Else
+		//Tilesetin ei tarvitse olla klooni ladattavasta kuvasta, koska siihen ei päästä käsiksi kuitenkaan
+		Tileset = MAIN_LocateMedia(Replace(Tileset, "\", "/"))
+		iM.MAIN_Media = New(MAIN_Media)
+		iM\MediaType = MAIN_Image
+		iM\FileName = Tileset
+		iM\Media = LoadImage(Tileset)
+		
+		nM\Media = LoadMap(FileName, iM\Media)
+	EndIf
+	MAIN_Map = ConvertToInteger(nM)
+	Return nM\Media
+EndFunction
+
+
+//Korvaa MakeMap
+Function API_MakeMap(Width, Height, TileWidth, TileHeight)
+	API_DeleteMap()
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Object
+	nM\FileName = "*CLONE*OBJ"  //"klooni" tyhjästä
+	nM\Media = MakeMap(Width, Height, TileWidth, TileHeight)
+	
+	MAIN_Map = ConvertToInteger(nM)
+	Return nM\Media
+EndFunction
+
+
+//Poistaa ladatun kartan, jos sellainen on
+Function API_DeleteMap()
+	If MAIN_Map Then
+		iM.MAIN_Media = ConvertToType(MAIN_Map)
+		DeleteObject iM\Media
+		Delete iM
+		MAIN_Map = 0
+	EndIf
+EndFunction
+
+
+//Korvaa ClearObjects
+Function API_ClearObjects()
+	MAIN_ClearMedia("*CLONE*OBJ")
+EndFunction
+
+
+//Tämänhetkinen objekti objektilistassa
+Global MAIN_CurrentObject
+
+
+//Korvaa InitObjectList
+Function API_InitObjectList()
+	MAIN_CurrentObject = ConvertToInteger(First(MAIN_Media))
+	Return API_NextObject()
+EndFunction
+
+
+//Korvaa NextObject
+Function API_NextObject()
+	iM.MAIN_Media = ConvertToType(MAIN_CurrentObject)
+	Repeat
+		iM = After(iM)
+		If iM = NULL Then
+			MAIN_CurrentObject = ConvertToInteger(First(MAIN_Media))
+			Return 0
+		EndIf
+	Until iM\MediaType = MAIN_Object Or iM\MediaType = MAIN_AnimObject
+	
+	MAIN_CurrentObject = ConvertToInteger(iM)
+	Return iM\Media
+EndFunction
+
+
+//Korvaa LoadImage
+Function API_LoadImage(FileName$)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_Image Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Image
+	iM\FileName = FileName
+	iM\Media = LoadImage(FileName)
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa LoadAnimImage
+Function API_LoadAnimImage(FileName$, Width, Height, Start = 0, Length = 1)
+	//TODO: virheidenkäsittely kun tiedostoa ei löydy
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_AnimImage Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_AnimImage
+	iM\FileName = FileName
+	iM\Media = LoadAnimImage(FileName, Width, Height, Start, Length)
+	
+	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+	Return nM\Media
+EndFunction
+
+
+//Korvaa MakeImage
+Function API_MakeImage(w, h)
+	iM.MAIN_Media = New(MAIN_Media)
+	iM\MediaType = MAIN_Image
+	iM\FileName = "*CLONE*IMG"  //"klooni" tyhjästä
+	iM\Media = MakeImage(w, h)
+	
+	Return iM\Media
+EndFunction
+
+
+//Korvaa CloneImage
+Function API_CloneImage(Img)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Img And iM\MediaType = MAIN_Image Then
+			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
+			Return nM\Media
+		EndIf
+	Next iM
+	
+	MakeError "Kloonattavaa kuvaa ei löytynyt"
+EndFunction
+
+
+//Korvaa DeleteImage
+Function API_DeleteImage(Img)
+	For iM.MAIN_Media = Each MAIN_Media
+		If iM\Media = Img And iM\MediaType = MAIN_Image Then
+			DeleteImage iM\Media
+			Delete iM
+			Return 0
+		EndIf
+	Next iM
+EndFunction
+
+
+//Korvaa LoadSound
+Function API_LoadSound(FileName$)
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	For iM.MAIN_Media = Each MAIN_Media
+		If FileName = iM\FileName And iM\MediaType = MAIN_Sound Then
+			Return iM\Media
+		EndIf
+	Next iM
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Sound
+	nM\FileName = FileName
+	nM\Media = LoadSound(FileName)
+	
+	Return nM\Media
+EndFunction
+
+
+//DeleteSoundille ei ole korviketta, koska ääniä ei voi kloonata
+
+
+//Etsii tiedostoa pelin kansiosta ja media kansiosta
+//auttaa lyhentämään ladattavien kuvien yms. nimiä.
+//Pelikohtaisen kansion media yliajaa aina globaalin median.
+//Palauttaa polun merkkijonona jos tiedosto löytyy
+//Palauttaa tyhjän merkkijonon jos tiedostoa ei löydy
+Function MAIN_LocateMedia(FileName$) 
+	If MAIN_RunningGameID = "" Then
+		gamePath$ = "GlobalMedia/"
+		mediaPath$ = "GlobalMedia/"
+	Else
+		gamePath$ = "Games/" + MAIN_RunningGameID + "/"
+		mediaPath$ = "GlobalMedia/"
+	EndIf
+	
+	If (FileExists(gamePath$ + FileName$)) Then Return gamePath$ + FileName$ 
+	If (FileExists(mediaPath$ + FileName$)) Then Return mediaPath$ + FileName$
+	If FileExists(file$) Then Return file$
+	
+	Return ""
+EndFunction 
+
+//Näytön piirtämiseen ja skaalaamiseen tarvittavia muuttujia
+Global API_RenderW, API_RenderH, API_RenderZoom
+Global API_ScreenW, API_ScreenH
+Global MAIN_MidImage, MAIN_FinImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
+
+//Kutakuinkin jokainen minipeli pitää kirjaa pelaajien pisteistä. Ettei jokaiseen minipeliin tarvitse tehdä omaa taulukkoa/muistipalaa tai
+//muuta tapaa tallentaa väliaikaispisteitä, luodaan kaikille peleille yhteinen taulukko.
+Dim API_PlayerScore(3)                          //Tähän tallennetaan pelaajien väliaikaiset pisteet
+
+
+// Vaihtaa renderöintiresoluutiota
+Function API_Resolution(w, h)
+	API_RenderW = w
+	API_RenderH = h
+	
+	API_RenderZoom = Min(RoundDown(Float(API_ScreenW) / API_RenderW), RoundDown(Float(API_ScreenH) / API_RenderH))
+	
+	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
+		If MAIN_MidImage Then DeleteImage MAIN_MidImage
+		MAIN_MidImage = MakeImage(API_RenderW, API_RenderH * API_RenderZoom)
+		MAIN_FinImage = MakeImage(API_RenderW * API_RenderZoom, API_RenderH * API_RenderZoom)
+		MAIN_ScreenOffsetX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
+		MAIN_ScreenOffsetY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
+	EndIf
+EndFunction
+
+
+// Asettaa näytön resoluution
+// Korvaa Screen komennon
+Function API_Screen(Width = 0, Height = 0, Windowed = 0)
+	// Natiiviresoluutio jos 0, 0
+	If (Width = 0 And Height = 0) Then
+	   SCREEN 0, 0, 0, 0
+	   API_ScreenW = ScreenWidth()
+	   API_ScreenH = ScreenHeight()
+	Else
+		API_ScreenW = Width
+		API_ScreenH = Height
+		
+		If Not GFXModeExists(API_ScreenW, API_ScreenH, 32) Then Windowed = 1
+	EndIf
+	
+	// Aseta samoiksi ettei jää nollaan
+	If API_RenderW = 0 Or API_RenderH = 0 Then
+		API_RenderW = API_ScreenW
+		API_RenderW = API_ScreenW
+	EndIf
+	
+	SCREEN API_ScreenW, API_ScreenH, 0, Windowed
+	
+	//TODO: lataa aina tarvittavat kuvat ja äänet uudestaan
+EndFunction 
+
+
+//Piirtää ja skaalaa API_RenderW x API_RenderH kokoisen alueen ruudulta
+Function API_DrawScreen()
+
+	//TODO: Virheilmoitukset jotka ei kaada koko ohjelmaa
+	
+	//TODO: Pause
+	
+	//TODO: Käyttöliittymäkomponentit
+	
+	//TODO: Simuloi hiirtä kokoruudulla
+
+	//Skaalataan vain jos ruudun koko ei vastaa haluttua
+	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
+		For y = 0 To API_RenderH - 1
+			CopyBox 0,  y, API_RenderW, 1, 0, y * API_RenderZoom + i, SCREEN(), Image(MAIN_MidImage)
+		Next y
+		
+		Cls 
+		DrawToWorld OFF, OFF
+		
+		For x = 0 To API_RenderW - 1
+			DestinationX = x * API_RenderZoom + i'Int(CameraX()) + x * API_RenderZoom + i - API_ScreenW / 2 + MAIN_ScreenOffsetX
+			DestinationY = 0'Int(-CameraY())                         - API_ScreenH / 2 + MAIN_ScreenOffsetY
+			
+			CopyBox x, 0, 1, API_RenderH * API_RenderZoom, DestinationX, DestinationY, Image(MAIN_MidImage), Image(MAIN_FinImage)
+		Next x
+		
+		DestinationX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
+		DestinationY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
+		For y = DestinationY To DestinationY + API_RenderZoom - 1
+			For x = DestinationX To DestinationX + API_RenderZoom - 1
+				DrawImage MAIN_FinImage, x, y
+			Next x
+		Next y
+	EndIf
+	
+	DrawScreen
+EndFunction	
+
+
+
+//Hiiren x-koordinaatti renderöintikoordinaatistossa
+Function API_MouseX()
+	Return (MouseX()- MAIN_ScreenOffsetX) / API_RenderZoom 
+EndFunction 
+
+//Hiiren y-koordinaatti renderöintikoordinaatistossa
+Function API_MouseY()
+	Return (MouseY()- MAIN_ScreenOffsetY) / API_RenderZoom 
+EndFunction 
+
+//Palauttaa 1 jos hiiri on renderöintikoordinaatistossa
+//alueen päällä, hyvä käyttää käyttöliittymäelementeissä
+Function API_MouseInBox(x,y,w,h)
+	mx = API_MouseX()
+	my = API_MouseY()
+	Return (mx >= x And mx < x+w And my >= y And my< y+h)
+EndFunction 
+
+
+// Tästä taulukosta löytyy pelaajien värit
+// voidaan käyttää CoolBasicin omia RED, GREEN ja BLUE vakioita
+// komponettien erottamiseen. Ensimmäinen numero on pelaajan numero
+// Esim. API_PlayerColor(2,RED)	 
+Dim API_PlayerColor(3,3) As Byte 	
+
+
+//Värjää kuvan pelaajan tunnusvärillä
+//Väri haetaan API_PlayerColor taulukosta
+//Erityisesti harmaasävyisille kuville
+//Palauttaa kuvan 
+Function API_Recolor(img, playerNumber, overlayImg = 0)
+	//Pelaajan värin suhteellinen voimakkuus 0.0 - 1.0
+	redAmount#   = Float(API_PlayerColor(playerNumber,RED))   / 255.0
+	greenAmount# = Float(API_PlayerColor(playerNumber,GREEN)) / 255.0
+	blueAmount#  = Float(API_PlayerColor(playerNumber,BLUE))  / 255.0
+	
+	If ( img <> 0 ) Then 
+
+		//lukittu kuva että saadaan nopeutta
+		Lock Image(img)
+			For x=0 To ImageWidth(img)-1
+				For y=0 To ImageHeight(img)-1
+				
+					//pikselista RGB
+					pixel = GetPixel2 (x,y,Image(img))
+					
+					pixel = pixel Shl 8
+					r = pixel Shr 24
+					
+					pixel = pixel Shl 8
+					g = pixel Shr 24
+					
+					pixel = pixel Shl 8
+					b = pixel Shr 24 
+					
+					// kerrotaan kukin pikseliarvo suhteellisella voimakkuudella
+					r = Float(r) * redAmount# 
+					g = Float(g) * greenAmount# 
+					b = Float(b) * blueAmount# 
+					
+					//RGB:stä pikseli
+					p = b + (g Shl 8) + (r Shl 16) + (255 Shl 24)
+					
+					PutPixel2 x,y,p,Image(img)
+					
+				Next y
+			Next x
+		Unlock Image(img)
+		
+		//Lisätään päälle toinen kuva jos se on annettu
+		If (overlayImg <> 0) Then
+			DrawToImage img
+				DrawImage overlayImg, 0, 0
+			DrawToScreen
+		EndIf
+	EndIf 
+	
+	Return img
+EndFunction 
+
+/////Funktiot settingsien lukuun by Latexi95
+
+Type MAIN_Settings
+    Field key$
+    Field value$
+EndType
+
+Function MAIN_ParseSettings(filePath$)
+    MAIN_ClearSettings()
+    file = OpenToRead(filePath$)
+    If file = 0 Then Return False
+    lineNum = 1
+    While Not EOF(file)
+        l$ = ReadLine(file)
+        notComment$ = Trim(GetWord(l$,1,"#"))
+        If notComment <> "" Then
+            If CountWords(notComment$,"=") < 2 Then
+                MakeError "Syntax error in file "+filePath$+" at line "+lineNum
+            EndIf
+            If CountWords(notComment$,"=") = 2 Then
+                newSetting.MAIN_Settings = New(MAIN_Settings)
+                newSetting\key$ = Lower(Trim(GetWord(notComment$,1,"=")))
+                newSetting\value$ = Trim(GetWord(notComment$,2,"="))
+            Else
+                place = InStr(notComment$,"=")
+                newSetting.MAIN_Settings = New(MAIN_Settings)
+                newSetting\key$ = Lower(Trim(Left(notComment$,place-1)))
+                newSetting\value$ = Trim(Mid(notComment,place+1))
+            EndIf
+        EndIf
+        lineNum + 1
+    Wend
+    CloseFile file
+EndFunction
+
+Function MAIN_SaveSettings(filePath$)
+    f = OpenToWrite(filePath$)
+    For setting.MAIN_Settings = Each MAIN_Settings
+        WriteLine f,setting\key$ + " = " + setting\value
+    Next setting
+    CloseFile f     
+EndFunction
+
+Function MAIN_DeleteSetting(key$)
+    key$ = Lower(key$)
+    For setting.MAIN_Settings = Each MAIN_Settings
+        If setting\key$ = key Then
+            Delete setting
+            Return True
+        EndIf
+    Next setting
+    Return False
+EndFunction
+
+
+
+Function MAIN_GetSetting(key$)
+    key$ = Lower(key$)
+    For setting.MAIN_Settings = Each MAIN_Settings
+        If setting\key$ = key Then Return setting\value$
+    Next setting
+    Return ""
+EndFunction
+
+Function MAIN_HasSetting(key$)
+    key$ = Lower(key$)
+    For setting.MAIN_Settings = Each MAIN_Settings
+        If setting\key$ = key Then Return True
+    Next setting
+    Return False
+EndFunction
+
+Function MAIN_SetSetting(key$,value$)
+    key$ = Lower(key$)
+    For setting.MAIN_Settings = Each MAIN_Settings
+        If setting\key$ = key Then
+            setting\value = value
+            Return True
+        EndIf
+    Next setting
+    newSetting.MAIN_Settings = New(MAIN_Settings)
+    newSetting\key = key
+    newSetting\value = value
+    Return False
+EndFunction
+
+Function MAIN_ClearSettings()
+    For setting.MAIN_Settings = Each MAIN_Settings
+        Delete setting
+    Next setting
+EndFunction
+//Tämä muuttuja sisältää pelien yhteismäärän (täytyy määritellä ennen pelien lataamista)
+Global MAIN_GameCount
+
+//Tämä muuttuja pitää sisällään käynnissä olevan pelin ID:n
+Global MAIN_RunningGameID As String 
+
+
+//Tässä kohtaa ladataan KAIKKI minipelit
+//Lisätään peli pelikokoelmaan nimellä TestGame (nimeä tarvitaan muiden tietojen hakemiseen)
+API_AddGame("AX00")
+
+Function AX00_Game(GameData)
+	Ukkokuva = API_LoadImage("Naama.png")
+	Maski = API_LoadImage("Naama2.png")
+	API_Recolor(Ukkokuva, 0, Maski)
+	Ukko = API_MakeObject(72)
+	PaintObject Ukko, -Ukkokuva
+	Repeat
+		For i = 0 To API_GetData(GameData, API_PlayerCount) - 1
+			//Pelaaja voittaa heti kun painaa nappia
+			If API_KeyHit(i, API_ACTION1) Then API_PlayerScore(i) = 1000 : Return 0
+		Next i
+		TurnObject Ukko, 3
+		API_DrawScreen()
+	Forever
+EndFunction
+//Lisätään peli pelikokoelmaan nimellä TestGame (nimeä tarvitaan muiden tietojen hakemiseen)
+API_AddGame("ME00")
+
+Type ME00_Ship
+	Field x As Float
+	Field y As Float
+	Field img As integer
+	Field player As Byte
+	Field hp As Float
+	Field coins As integer
+EndType
+
+Type ME00_Rock
+	Field x As Float
+	Field y As Float
+	Field img As integer
+	Field mineral As integer
+EndType
+
+Function ME00_Game(GameData)
+	// later replaced with API
+	SW = API_RenderW
+	SH = API_RenderH
+
+	
+
+	playerCount = API_GetData(GameData, API_PlayerCount)
+
+	//luodaan pelaajille alukset
+	For i=0 To playerCount-1
+	
+		s.ME00_Ship = New (ME00_Ship)
+		s\img = API_LoadImage("ship.png")
+		
+
+		API_Recolor(s\img,i)
+		
+		s\player = i
+	
+	Next i
+	
+	background = API_MakeObjectFloor()
+	stars = API_LoadImage(mediaLocation$+"stars.png")
+	PaintObject background,stars
+	
+
+	Repeat
+	
+		DrawGame 
+	
+		For s.ME00_Ship=Each ME00_Ship
+		
+			s\y = s\y + ( API_KeyDown(s\player, API_DOWN) - API_KeyDown(s\player, API_UP) ) * API_RenderZoom
+			
+			If ( API_KeyDown(s\player, API_RIGHT) ) Then 
+				s\x = CurveValue(SW/3.0,s\x,50.0) 
+				speed# = CurveValue(7.0 * API_RenderZoom,speed#,100.0) 
+			Else
+				s\x = CurveValue(SW/10.0,s\x,100.0)
+				speed# = 1.0 * API_RenderZoom
+			EndIf 
+			
+			TranslateCamera speed#,0
+			
+			DrawImage s\img,s\x, s\y
+		
+		Next s
+		
+	
+		API_DrawScreen()
+	Forever
+	
+EndFunction
+
+
+//Tämä tyyppikokoelma pitää listaa kaikista peleistä ja niiden tiedoista
+Type MAIN_Game
+	Field ID$
+	Field Name$
+	Field Desc$
+	Field Controls$
+	Field PlayerSetup$
+	Field MaxPlayers
+	Field Logo
+EndType
+
+
+//Lisää pelin pelikokoelmaan. Lisätiedot luetaan gamedata.ini tiedostosta
+Function API_AddGame(ID$)
+	//Tarkistetaan, ettei peliä ole vielä lisätty
+	For iG.MAIN_Game = Each MAIN_Game
+		If iG\ID = ID Then MakeError "Pelikokoelmassa on samalla tunnisteella pelejä: " + ID + "!"
+	Next iG
+	
+	//Ladataan tiedot
+	If Not FileExists("Games/" + ID + "/gameinfo.ini") Then MakeError "Peliltä " + ID + " puuttuu asetustiedosto!"		
+	MAIN_ParseSettings("Games/" + ID + "/gameinfo.ini")
+	
+	//Lisätään tiedot pelikokoelmaan
+	nG.MAIN_Game = New(MAIN_Game)
+	nG\ID = ID
+	nG\Name = MAIN_GetSetting("Name")
+	nG\Desc = MAIN_GetSetting("Desc")
+	nG\Controls = MAIN_GetSetting("Controls")
+	nG\PlayerSetup = Upper(Str(MAIN_GetSetting("PlayerSetup")))
+	nG\MaxPlayers = Int(MAIN_GetSetting("MaxPlayers"))
+	
+	//Tarkistetaan, ettei samannimistä peliä ole vielä lisätty
+	For iG.MAIN_Game = Each MAIN_Game
+		If iG <> nG And iG\Name = nG\Name Then MakeError "Pelikokoelmassa on samannimisiä pelejä: " + Name + "! (" + nG\ID + " ja " + iG\ID + ")"
+	Next iG
+	
+	//Tutkitaan puuttuvat tiedot ja aiheutetaan virheilmoitus, jos puuttuu pakollisia tietoja
+	If ID = "" Then MakeError "Pelillä ei ole nimeä!"
+	err$ = "Minipelin " + ID + " tietoja puuttuu: "
+	If nG\Name = "" Then err = err + "nimi, "
+	If nG\Desc = "" Then err = err + "selite, "
+	If nG\Controls = "" Then err = err + "näppäinselite, "
+	If nG\PlayerSetup = "" Then err = err + "pelaajien kokoonpano, "
+	If Not FileExists("Games/" + ID + "/logo.png") Then err = err + "logo.png, "
+	
+	If err <> "Minipelin " + ID + " tietoja puuttuu: " Then MakeError Left(err, Len(err) - 2) + "!"
+	
+	//Lisätään oletustiedot, jos puuttuu vapaaehtoisia tietoja
+	If nG\MaxPlayers = 0 Then nG\MaxPlayers = 4
+	
+	nG\Logo = LoadImage("Games/" + ID + "/logo.png")
+	
+	MAIN_GameCount = MAIN_GameCount + 1
+EndFunction
+
+
+//Hakee kokoelmasta pelin ja palauttaa sen osoitteen
+Function MAIN_GetGame(ID$)
+	For iG.MAIN_Game = Each MAIN_Game
+		If iG\ID = ID Then Return ConvertToInteger(iG)
+	Next iG
+EndFunction
+
+
+//Pelivalitsin / päävalikko
+//näyttää kokoelman pelit ja käynnistää ne niiden logoa klikkaamalla
+Function MAIN_SelectGame()
+	GameData = API_MakeGameData()
+	API_PutData(GameData, API_PlayerCount, 2)
+	API_PutData(GameData, API_PlayerSetup, "ALLvsALL")
+	Repeat
+		Text 20,20,"Pelikokoelmassa on seuraavat pelit: "
+	
+		gameCount = 0
+		
+		mx = API_MouseX()
+		my = API_MouseY()
+		
+		DrawGame
+		
+		For iG.MAIN_Game = Each MAIN_Game
+			y = 40 + gameCount * 110
+			
+			//onko hiiri pelin päällä
+			If( API_MouseInBox(18,y-2,API_RenderW-40,104)) Then
+				If( MouseHit(1)) Then MAIN_Start(iG\ID, GameData)
+				Box 18,y-2,API_RenderW-40,104,0
+			EndIf 
+
+			DrawImage iG\Logo ,20, y
+		
+			Text 130,y+20,iG\ID + " " + iG\Name
+			Text 130,y+40,iG\Desc
+			Text 130,y+60,iG\Controls
+			Text 130,y+80,iG\PlayerSetup + " " + iG\MaxPlayers
+			
+			gameCount = gameCount + 1
+		Next iG
+		
+		mediaCount = 0
+		For iM.MAIN_Media = Each MAIN_Media
+			mediaCount = mediaCount + 1
+			Text 10, 260 + mediaCount * 15, iM\FileName
+		Next iM
+		Text 0, 260, "Ladattua mediaa: " + mediaCount
+		
+		API_DrawScreen()
+	Forever
+EndFunction 
+
+
+//Aloittaa pelin
+Function MAIN_Start(ID$, GameData)
+	MAIN_RunningGameID = ID$
+	Select ID
+		Case "AX00"
+			AX00_Game(GameData)
+		Case "ME00"
+			ME00_Game(GameData)
+		Default
+			MakeError "Peliä " + Name + " ei löytynyt!"
+	EndSelect
+	MAIN_ClearMedia("*CLONE")
+	MAIN_RunningGameID = ""
+EndFunction
+
+
+//GameData-palikkaan tallennettavat tiedot (huom. jos muutat, muuta myös GetData ja WriteData funktioiden select-caseja)
+Const API_PlayerCount = 0
+Const API_PlayerSetup = 1
+//Sisältää GameData-palikan koon
+Const API_BlockSize = 2
+
+//Luo GameData-muistipalan
+Function API_MakeGameData()
+	Return MakeMEMBlock(API_BlockSize * 4)
+EndFunction
+
+
+//Palauttaa tiedon muistipalasta
+Function API_GetData(GameData, DataToGet)
+	If DataToGet >= API_BlockSize Then Return -1
+	
+	Value = PeekInt(GameData, DataToGet * 4)
+	Select DataToGet
+		Case 1  //API_PlayerSetup
+			Select Value
+				Case 0
+					Return "ALLvsALL"
+				Case 1
+					Return "1vsALL"
+				Case 2
+					Return "TEAMvs"
+				Default
+					Return ""
+			EndSelect
+		Default
+			Return Value
+	EndSelect
+EndFunction
+
+
+//Kirjoittaa tiedon muistipalaan (Value on merkkijono, mutta voi sisältää myös numeron)
+Function API_PutData(GameData, DataToWrite, Value$)
+	If DataToWrite >= API_BlockSize Then Return -1
+	
+	Select DataToWrite
+		Case 1  //API_PlayerSetup
+			Select Value
+				Case "ALLvsALL"
+					Value = 0
+				Case "1vsALL"
+					Value = 1
+				Case "TEAMvs"
+					Value = 2
+				Default
+					Value = -1
+			EndSelect
+	EndSelect
+	PokeInt GameData, DataToWrite * 4, Int(Value)
+EndFunction
+
+For i = 0 To 3
+	col = Rand(1,6)
+	col = col Shl 29
+	API_PlayerColor(i,RED) = 127+128*(col Shr 31) 
+	
+	col = col Shl 1
+	API_PlayerColor(i,GREEN) = 127+128*(col Shr 31) 
+	
+	col = col Shl 1 
+	API_PlayerColor(i,BLUE) = 127+128*(col Shr 31) 
+Next i
+
+MAIN_LoadKeys()
+MAIN_SelectGame()
