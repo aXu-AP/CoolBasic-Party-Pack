@@ -1,11 +1,21 @@
 //Funktiot median hallintaan
 
+//Homma toimii n‰in: kun latausfunktiota kutsutaan, se tarkistaa, onko saatavilla jo ladattua kuvaa.
+//Jos on, niin palautetaan klooni t‰st‰. Jos ei ole, ladataan kuva ja palautetaan sen klooni (jotta originaalia voidaan viel‰ k‰ytt‰‰)
+//Poistettaessa kuvia/objekteja poistetaan aina klooni, ellei p‰‰ohjelma kutsu MAIN_ClearMedia()
+//ƒ‰nen tapauksessa kloonaamisvaihe j‰tet‰‰n pois, ja palautetaan aina originaalia materiaalia. T‰st‰ syyst‰ niille ei ole poistok‰sky‰ ja ne poistetaan vain MAIN_ClearMedia():lla.
+//MakeObject, MakeObjectFloor, MakeEmitter ja MakeImage funktioilla luodut kohteet k‰sitell‰‰n klooneina (koska "originaalia" ei ole olemassa eik‰ siit‰ hyˆdytt‰isi muualla)
+//Karttaa varten on vain yksi objekti eik‰ sit‰ voida k‰ytt‰‰ uudelleen, joten se toimii "perinteiseen" tapaan.
+
+
 //Vakiot mediatyyppien erottamiseksi
 Const MAIN_Object = 0
-Const MAIN_Image = 1
-Const MAIN_AnimObject = 2
+Const MAIN_AnimObject = 1
+Const MAIN_Image = 2
 Const MAIN_AnimImage = 3
 Const MAIN_Audio = 4
+
+Global MAIN_MAP
 
 Type MAIN_Media
 	Field Media
@@ -143,7 +153,7 @@ EndFunction
 Function API_MakeObjectFloor()
 	iM.MAIN_Media = New(MAIN_Media)
 	iM\MediaType = MAIN_Object
-	iM\FileName = "*CLONE"  //"klooni" tyhj‰st‰
+	iM\FileName = "*CLONE*OBJ"  //"klooni" tyhj‰st‰
 	iM\Media = MakeObjectFloor()
 	
 	Return iM\Media
@@ -153,12 +163,79 @@ EndFunction
 //Korvaa DeleteObject
 Function API_DeleteObject(Object)
 	For iM.MAIN_Media = Each MAIN_Media
-		If iM\Media = Object And iM\MediaType = MAIN_Object Then
+		If iM\Media = Object And iM\MediaType = MAIN_Object Or iM\MediaType = MAIN_AnimObject Then
+			//Jos tuhotaan kartta, merkit‰‰n se tuhotuksi
+			If MAIN_Map Then
+				If iM = ConvertToType(MAIN_Map) Then MAIN_Map = 0
+			EndIf
+			
 			DeleteObject iM\Media
 			Delete iM
 			Return 0
 		EndIf
 	Next iM
+EndFunction
+
+
+//Korvaa MakeEmitter
+Function API_MakeEmitter(Img, Life)
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Object
+	nM\FileName = "*CLONE*OBJ"
+	nM\Media = MakeEmitter(Img, Life)
+	
+	Return nM\Media
+EndFunction
+
+
+//Korvaa LoadMap
+Function API_LoadMap(FileName$, Tileset$)
+	API_DeleteMap()
+	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Object
+	nM\FileName = "*CLONE*OBJ"  //karttaa ei voida k‰ytt‰‰ uudelleen, joten se on sama merkit‰ klooniksi
+	
+	If Str(Int(Tileset)) = Tileset Then
+		nM\Media = LoadMap(FileName, Int(Tileset))
+	Else
+		//Tilesetin ei tarvitse olla klooni ladattavasta kuvasta, koska siihen ei p‰‰st‰ k‰siksi kuitenkaan
+		Tileset = MAIN_LocateMedia(Replace(Tileset, "\", "/"))
+		iM.MAIN_Media = New(MAIN_Media)
+		iM\MediaType = MAIN_Image
+		iM\FileName = Tileset
+		iM\Media = LoadImage(Tileset)
+		
+		nM\Media = LoadMap(FileName, iM\Media)
+	EndIf
+	MAIN_Map = ConvertToInteger(nM)
+	Return nM\Media
+EndFunction
+
+
+//Korvaa MakeMap
+Function API_MakeMap(Width, Height, TileWidth, TileHeight)
+	API_DeleteMap()
+	
+	nM.MAIN_Media = New(MAIN_Media)
+	nM\MediaType = MAIN_Object
+	nM\FileName = "*CLONE*OBJ"  //"klooni" tyhj‰st‰
+	nM\Media = MakeMap(Width, Height, TileWidth, TileHeight)
+	
+	MAIN_Map = ConvertToInteger(nM)
+	Return nM\Media
+EndFunction
+
+
+//Poistaa ladatun kartan, jos sellainen on
+Function API_DeleteMap()
+	If MAIN_Map Then
+		iM.MAIN_Media = ConvertToType(MAIN_Map)
+		DeleteObject iM\Media
+		Delete iM
+		MAIN_Map = 0
+	EndIf
 EndFunction
 
 
