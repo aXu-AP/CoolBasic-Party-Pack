@@ -1,0 +1,207 @@
+
+//N‰it‰ k‰ytet‰‰n myˆs pelajille. 
+//Varo muutoksia!
+//T‰ss‰ m‰‰ritell‰‰n vakiot, joilla viitataan eri n‰pp‰imiin
+Const API_UP       = 0 
+Const API_DOWN     = 1
+Const API_LEFT     = 2
+Const API_RIGHT    = 3
+Const API_ACTION1  = 4
+Const API_ACTION2  = 5
+
+//Otetaan ylˆs toimintojen m‰‰r‰ jottei tartte k‰ytt‰‰ taikavakioita
+Const API_ACTIONS  = 6
+
+//pelaajan kontrollien l‰hde
+Const API_PLAYER_SOURCE = 6
+
+//pelaajan v‰ri
+Const API_PLAYER_RED 	= 7
+Const API_PLAYER_BLUE 	= 8
+Const API_PLAYER_GREEN 	= 9
+
+//Pelaajan static muistipalan koko
+Const API_PLAYER_STATIC_SIZE = 10
+
+//Dynaamisen muistipalan suositeltuja offsettej‰
+Const API_PLAYER_POINTS 	= 0
+
+
+Const API_KEYBOARD 	= 1
+
+//Pelaajien m‰‰r‰
+Global API_PlayerAmount
+
+API_PlayerAmount = 0
+
+Type API_Player
+    Field id
+	Field name$
+	Field static
+    Field dynamic
+	Field dynamicSize
+EndType
+
+//Lis‰‰ pelaajan ja v‰rin
+Function API_AddPlayer(name$, r=-1,g=-1,b=-1)
+	
+	p.API_Player = New(API_Player)
+	p\name = name$
+	p\id = ConvertToInteger(p)
+	p\static = MakeMEMBlock(API_PLAYER_STATIC_SIZE)
+	
+	API_SetPlayerColor(p\id,r,g,b)
+	
+	//Mik‰ koko ON riitt‰v‰?
+	p\dynamicSize = 32
+	p\dynamic = MakeMEMBlock(p\dynamicSize)
+	
+	API_PlayerAmount = API_PlayerAmount + 1
+
+	Return p\id
+
+EndFunction 
+
+// Asettaa ja palauttaa pelaajan pisteet
+Function API_PlayerPoints(playerID,points=-1)
+
+	p.API_Player = ConvertToType(playerID)
+	
+	If (p <> NULL) Then
+	
+		If ( points >= 0) Then 
+			PokeInt p\dynamic,API_PLAYER_POINTS,points
+			Return points  
+		Else 
+			Return peekint(p\dynamic,API_PLAYER_POINTS)
+		EndIf 
+
+	EndIf 
+	
+	Return 0
+
+EndFunction 
+
+Function API_SetPlayerColor(playerID,r=-1,g=-1,b=-1)
+
+	p.API_Player = ConvertToType(playerID)
+	
+	If (p <> NULL) Then 
+	
+		If (r < 0 Or g < 0 Or b < 0 Or r > 255 Or g > 255 Or b > 255) Then 
+		
+			col = Rand(1,6)
+			col = col Shl 29
+			PokeByte p\static,API_PLAYER_RED, 127+127*(col Shr 31) 
+			
+			col = col Shl 1
+			PokeByte p\static,API_PLAYER_GREEN, 127+127*(col Shr 31) 
+			
+			col = col Shl 1 
+			PokeByte p\static,API_PLAYER_BLUE,  127+127*(col Shr 31) 
+		
+		Else 
+		
+			PokeByte p\static,API_PLAYER_RED,r
+			PokeByte p\static,API_PLAYER_GREEN,g
+			PokeByte p\static,API_PLAYER_BLUE,b
+
+		EndIf   
+	
+	EndIf 
+	
+EndFunction 
+
+//Kopioi staatisen ja/tai dynaamisen muistipalan
+//pelaajalle jos annettu pala on erisuuri kuin nolla
+Function MAIN_SetPlayerData(playerID, static=0, dynamic=0)
+
+	p.API_Player = ConvertToType(playerID)
+	
+	If (p <> NULL) Then 
+	
+		If (static <> 0 And p\static <> 0 And MEMBlockSize(p\static) = API_PLAYER_STATIC_SIZE) Then 
+			MemCopy static,0,p\static,0,API_PLAYER_STATIC_SIZE
+		EndIf 
+		
+		If (dynamic <> 0) Then
+			p\dynamicSize = MEMBlockSize(dynamic)
+			p\dynamic = MakeMEMBlock(p\dynamicSize)
+			MemCopy dynamic,0,p\dynamic,0,p\dynamicSize
+		EndIf 
+	
+	EndIf 
+
+EndFunction 
+
+//Lataa defaulttiasetukset 
+//TODO: mahdollista n‰pp‰inten lataus tiedostosta, 
+//mieluiten Gamesettinginsin kautta
+Function MAIN_LoadKeys()
+
+	p.API_Player = First(API_Player)
+	
+	If ( p <> NULL) Then
+		
+		PokeByte p\static, API_UP, 		200 //Ylˆs nuoli
+		PokeByte p\static, API_DOWN, 	208 //Alas nuoli
+		PokeByte p\static, API_LEFT, 	203 //Vasen nuoli
+		PokeByte p\static, API_RIGHT, 	205 //Oikea nuoli
+		PokeByte p\static, API_ACTION1, 54  //Oikea shift
+		PokeByte p\static, API_ACTION2, 221 //Oikea ctrl
+		PokeByte p\static, API_PLAYER_SOURCE, API_KEYBOARD
+		
+		p = After(p)
+		
+		If ( p <> NULL) Then
+		
+			PokeByte p\static, API_UP, 		17 //W
+			PokeByte p\static, API_DOWN,	31 //S
+			PokeByte p\static, API_LEFT, 	30 //A
+			PokeByte p\static, API_RIGHT, 	32 //D
+			PokeByte p\static, API_ACTION1, 42 //Vasen shift
+			PokeByte p\static, API_ACTION2, 86 //<>
+			PokeByte p\static, API_PLAYER_SOURCE, API_KEYBOARD
+		
+		EndIf 
+		
+	EndIf 
+
+End Function
+
+
+//Korvaa KeyHit()
+Function API_KeyHit(PlayerID, Key)
+	p.API_Player = ConvertToType(PlayerID)
+	If ( p <> NULL And Key >=0 And Key < API_ACTIONS) Then 
+		source = PeekByte(p\static,API_PLAYER_SOURCE)
+		If (source = API_KEYBOARD) Then 
+			Return KeyHit(PeekByte(p\static,Key))
+		EndIf 
+	EndIf
+	Return False
+End Function
+
+//Korvaa KeyDown()
+Function API_KeyDown(PlayerID, Key)
+	p.API_Player = ConvertToType(PlayerID)
+	If ( p <> NULL And Key >=0 And Key < API_ACTIONS) Then 
+		source = PeekByte(p\static,API_PLAYER_SOURCE)
+		If (source = API_KEYBOARD) Then 
+			Return KeyDown(PeekByte(p\static,Key))
+		EndIf 
+	EndIf
+	Return False
+End Function
+
+//Korvaa KeyUp()
+Function API_KeyUp(PlayerID, Key)
+	p.API_Player = ConvertToType(PlayerID)
+	If ( p <> NULL And Key > -1 And Key <6) Then 
+		source = PeekByte(p\static,API_PLAYER_SOURCE)
+		If (source = API_KEYBOARD) Then 
+			Return KeyUp(PeekByte(p\static,Key))
+		EndIf 
+	EndIf
+	Return False
+End Function

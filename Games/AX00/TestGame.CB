@@ -2,14 +2,21 @@
 API_AddGame("AX00")
 
 Function AX00_Game(GameData)
+
+	//tähän ehkä vielä jotain helpotust
+	p.API_Player = First(API_Player)
+
 	Ukko = API_LoadImage("Naama.png")
 	Maski = API_LoadImage("Naama2.png")
-	API_Recolor(Ukko, 0, Maski)
+	API_Recolor(p\id, Ukko, Maski)
+	
 	Repeat
-		For i = 0 To API_GetData(GameData, API_PlayerCount) - 1
+		
+		For p.API_Player = Each API_PLAYER
 			//Pelaaja voittaa heti kun painaa nappia
-			If API_KeyHit(i, API_ACTION1) Then API_PlayerScore(i) = 1000 : Return 0
-		Next i
+			If API_KeyHit(p\id, API_ACTION1) Then API_PlayerPoints(p\id,1000) : Return 0
+		Next p
+	
 		DrawImage Ukko, 0, 0
 		API_DrawScreen()
 	Forever

@@ -4,7 +4,6 @@ Global MAIN_GameCount
 //T‰m‰ muuttuja pit‰‰ sis‰ll‰‰n k‰ynniss‰ olevan pelin ID:n
 Global MAIN_RunningGameID As String 
 
-
 //T‰ss‰ kohtaa ladataan KAIKKI minipelit
 Include "Games/AX00/TestGame.CB"
 Include "Games/ME00/SpaceMiners.CB"
@@ -79,10 +78,15 @@ EndFunction
 //n‰ytt‰‰ kokoelman pelit ja k‰ynnist‰‰ ne niiden logoa klikkaamalla
 Function MAIN_SelectGame()
 	GameData = API_MakeGameData()
-	API_PutData(GameData, API_PlayerCount, 2)
 	API_PutData(GameData, API_PlayerSetup, "ALLvsALL")
+	
+	marginBig = 20
+	marginSmall = 2
+	logoSize = 100
+	rowHeight = 20 
+	
 	Repeat
-		Text 20,20,"Pelikokoelmassa on seuraavat pelit: "
+		Text marginBig,marginBig,"Pelikokoelmassa on seuraavat pelit: "
 	
 		gameCount = 0
 		
@@ -92,22 +96,27 @@ Function MAIN_SelectGame()
 		DrawGame
 		
 		For iG.MAIN_Game = Each MAIN_Game
-			y = 40 + gameCount * 110
-			
-			//onko hiiri pelin p‰‰ll‰
-			If( API_MouseInBox(18,y-2,API_RenderW-40,104)) Then
-				If( MouseHit(1)) Then MAIN_Start(iG\ID, GameData)
-				Box 18,y-2,API_RenderW-40,104,0
-			EndIf 
 
-			DrawImage iG\Logo ,20, y
-		
-			Text 130,y+20,iG\ID + " " + iG\Name
-			Text 130,y+40,iG\Desc
-			Text 130,y+60,iG\Controls
-			Text 130,y+80,iG\PlayerSetup + " " + iG\MaxPlayers
+			If (API_PlayerAmount < iG\MaxPlayers) Then 
 			
-			gameCount = gameCount + 1
+				y = marginBig + rowHeight + gameCount * (100 + marginBig/2)
+	
+				//onko hiiri pelin p‰‰ll‰
+				If( API_MouseInBox(marginBig-marginSmall,y-marginSmall,API_RenderW-marginBig*2,logoSize+marginSmall*2)) Then
+					If( MouseHit(1)) Then MAIN_Start(iG\ID, GameData)
+					Box marginBig-marginSmall,y-marginSmall,API_RenderW-marginBig*2,logoSize+marginSmall*2,0
+				EndIf 
+	
+				DrawImage iG\Logo ,marginBig, y
+			
+				Text marginBig*3/2+logoSize,y+rowHeight,iG\ID + " " + iG\Name
+				Text marginBig*3/2+logoSize,y+rowHeight*2,iG\Desc
+				Text marginBig*3/2+logoSize,y+rowHeight*3,iG\Controls
+				Text marginBig*3/2+logoSize,y+rowHeight*4,iG\PlayerSetup + " " + iG\MaxPlayers
+				
+				gameCount = gameCount + 1
+			
+			EndIf 
 		Next iG
 		
 		API_DrawScreen()
@@ -143,7 +152,7 @@ EndFunction
 
 //Palauttaa tiedon muistipalasta
 Function API_GetData(GameData, DataToGet)
-	If DataToGet >= API_BlockSize Then Return -1
+	If (DataToGet >= API_BlockSize) Then Return -1
 	
 	Value = PeekInt(GameData, DataToGet * 4)
 	Select DataToGet
@@ -166,7 +175,7 @@ EndFunction
 
 //Kirjoittaa tiedon muistipalaan (Value on merkkijono, mutta voi sis‰lt‰‰ myˆs numeron)
 Function API_PutData(GameData, DataToWrite, Value$)
-	If DataToWrite >= API_BlockSize Then Return -1
+	If (DataToWrite >= API_BlockSize) Then Return -1
 	
 	Select DataToWrite
 		Case 1  //API_PlayerSetup
