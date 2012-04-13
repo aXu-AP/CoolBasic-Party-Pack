@@ -118,7 +118,7 @@ Function API_Recolor(number, img, overlayImg = 0)
 	
 		player = API_Player(number)
 		
-		col = peekint(player,API_PLAYER_COLOR)
+		col = PeekInt(player,API_PLAYER_COLOR)
 	
 		//Pelaajan värin suhteellinen voimakkuus 0.0 - 1.0
 		redAmount#   = Float(PeekByte(col,RED))   / 255.0
@@ -126,7 +126,7 @@ Function API_Recolor(number, img, overlayImg = 0)
 		blueAmount#  = Float(PeekByte(col,BLUE))  / 255.0
 		
 		If ( img <> 0 ) Then 
-	
+		
 			//lukittu kuva että saadaan nopeutta
 			Lock Image(img)
 				For x=0 To ImageWidth(img)-1

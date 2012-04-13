@@ -32,7 +32,7 @@ Function API_KeyHit(number, Key)
 End Function
 
 //Korvaa KeyDown()
-Function API_KeyDown(PlayerID, Key)
+Function API_KeyDown(number, Key)
 	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
 		player = API_Player(number) 
@@ -48,7 +48,7 @@ Function API_KeyDown(PlayerID, Key)
 End Function
 
 //Korvaa KeyUp()
-Function API_KeyUp(PlayerID, Key)
+Function API_KeyUp(number, Key)
 	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
 		player = API_Player(number) 

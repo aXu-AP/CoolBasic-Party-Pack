@@ -33,7 +33,7 @@ EndType
 //Lis‰‰ pelaajan ja v‰rin
 Function API_AddPlayer(name$, r=-1,g=-1,b=-1)
 
-	player = -1
+	number = -1
 
 	For i=0 To API_MAX_PLAYERS-1
 	
@@ -64,6 +64,7 @@ Function API_AddPlayer(name$, r=-1,g=-1,b=-1)
 		API_SetPlayerColor(number,r,g,b)
 
 	EndIf 
+	
 EndFunction 
 
 // Asettaa ja palauttaa pelaajan pisteet

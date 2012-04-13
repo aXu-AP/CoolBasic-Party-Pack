@@ -21,14 +21,17 @@ EndType
 
 Function ME00_Game(GameData)
 
+	
 	PlayerCount = API_GetData(GameData, API_PlayerCount)
-
+	
 	//luodaan pelaajille alukset
 	For i=0 To PlayerCount-1
 	
 		s.ME00_Ship = New(ME00_Ship)
 		
 		s\img = API_LoadImage("ship.png")
+		
+		s\y = API_RenderH/2.0 +i * 30
 		
 		API_Recolor(i,s\img)
 		
@@ -41,11 +44,12 @@ Function ME00_Game(GameData)
 	PaintObject background,stars
 	
 	TranslateCamera 0,ImageHeight(stars)/2
+
 	
 	Repeat
 	
 		DrawGame 
-		
+
 		For s.ME00_Ship=Each ME00_Ship
 		
 			s\y = s\y + ( API_KeyDown(s\playerID, API_DOWN) - API_KeyDown(s\playerID, API_UP) )  * API_RenderZoom
@@ -59,12 +63,18 @@ Function ME00_Game(GameData)
 			EndIf 
 
 			TranslateCamera speed#,0
-			
+
 			DrawImage s\img,s\x, s\y
+			
 		
 		Next s
 		
 		API_DrawScreen()
 	Until EscapeKey()
+	
+	For s.ME00_Ship=Each ME00_Ship
+		Delete s
+	Next s
+
 
 EndFunction

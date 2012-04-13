@@ -7,6 +7,7 @@ Function AX00_Game(GameData)
 	
 	Ukkokuva = API_LoadImage("Naama.png")
 	Maski = API_LoadImage("Naama2.png")
+	
 	API_Recolor(0, Ukkokuva, Maski)
 
 	Ukko = API_MakeObject(72)
@@ -17,6 +18,7 @@ Function AX00_Game(GameData)
 		For i=0 To PlayerCount-1
 			//Pelaaja voittaa heti kun painaa nappia
 			If API_KeyHit(i, API_ACTION1) Then API_PlayerPoints(i,1000) : Return 0
+
 		Next i
 
 		TurnObject Ukko, 2

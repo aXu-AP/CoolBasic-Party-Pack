@@ -9,8 +9,9 @@ Include "Functional.cb"     //Sekalaisia funktioita
 Include "Gamesettings.cb"
 Include "Games.cb"          //Sis‰lt‰‰ kaiken minipelien hallintaa varten
 
-API_AddPlayer("Pelle pelaaja")
-API_AddPlayer("Fiia fr‰g‰‰j‰")
+API_AddPlayer("Pelle pelaaja",0,255,0)
+API_AddPlayer("Fiia fr‰g‰‰j‰",0,0,255)
+API_AddPlayer("Jonne E. S.",255,0,0)
 
 MAIN_LoadKeys()
 MAIN_SelectGame()
