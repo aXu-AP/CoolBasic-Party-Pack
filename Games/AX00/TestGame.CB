@@ -19,6 +19,7 @@ Function AX00_Game(GameData)
 			//Pelaaja voittaa heti kun painaa nappia
 			If API_KeyHit(i, API_ACTION1) Then
 				API_PlayerPoints(i, 1000)
+				Color API_PlayerColor(i, RED), API_PlayerColor(i, GREEN), API_PlayerColor(i, BLUE)
 				Print "Player " + i + " points: " + API_PlayerPoints(i)
 				WaitKey
 				Return 0

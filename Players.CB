@@ -56,11 +56,12 @@ Function MAIN_AddPlayer(name$, r = -1, g = -1, b = -1)
 		
 		MAIN_Player(number) = player
 
-		API_SetPlayerColor(number,r,g,b)
+		API_PlayerColor(number,r,g,b)
 	EndIf 
 	
 	Return number
 EndFunction 
+
 
 // Asettaa ja palauttaa pelaajan pisteet
 Function API_PlayerPoints(number, points = -1)
@@ -69,7 +70,7 @@ Function API_PlayerPoints(number, points = -1)
 		
 		If (points >= 0) Then 
 			PokeInt player, MAIN_PLAYER_POINTS, points
-			Return points 
+			Return points
 		Else 
 			Return PeekInt(player, MAIN_PLAYER_POINTS)
 		EndIf 
@@ -78,13 +79,15 @@ Function API_PlayerPoints(number, points = -1)
 	Return 0
 EndFunction 
 
-Function API_SetPlayerColor(number, r = -1, g = -1, b = -1)
+
+//Asettaa tai palauttaa pelaajan värin
+Function API_PlayerColor(number, r = -1, g = -1, b = -1)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
 		player = MAIN_Player(number)
 		
 		col = PeekInt(player, MAIN_PLAYER_COLOR)
-	
-		If (r < 0 Or g < 0 Or b < 0 Or r > 255 Or g > 255 Or b > 255) Then 
+		
+		If r = -1 Then
 			c = Rand(1, 6)
 			c = c Shl 29
 			PokeByte col, RED, 127 + 127 * (c Shr 31) 
@@ -95,16 +98,21 @@ Function API_SetPlayerColor(number, r = -1, g = -1, b = -1)
 			c = c Shl 1
 			PokeByte col, BLUE, 127 + 127 * (c Shr 31) 
 		Else 
-			PokeByte col, RED, r
-			PokeByte col, GREEN, g
-			PokeByte col, BLUE, b
+			If g = -1 Or b = -1 And (r => 0 And r < 4)
+				Return PeekByte(col, r)
+			Else
+				PokeByte col, RED, r Mod 256
+				PokeByte col, GREEN, g Mod 256
+				PokeByte col, BLUE, b Mod 256
+			EndIf
 		EndIf   
 	EndIf 
 EndFunction 
 
+
 //Kopioi staatisen ja/tai dynaamisen muistipalan
 //pelaajalle jos annettu pala on erisuuri kuin nolla
-Function MAIN_SetPlayerData(number, static = 0, dynamic = 0)
+Function MAIN_CopyPlayerData(number, static = 0, dynamic = 0)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
 		player = MAIN_Player(number) 
 		
