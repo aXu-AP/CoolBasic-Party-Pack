@@ -17,8 +17,12 @@ Function AX00_Game(GameData)
 		
 		For i=0 To PlayerCount-1
 			//Pelaaja voittaa heti kun painaa nappia
-			If API_KeyHit(i, API_ACTION1) Then API_PlayerPoints(i,1000) : Return 0
-
+			If API_KeyHit(i, API_ACTION1) Then
+				API_PlayerPoints(i, 1000)
+				Print "Player " + i + " points: " + API_PlayerPoints(i)
+				WaitKey
+				Return 0
+			EndIf
 		Next i
 
 		TurnObject Ukko, 2

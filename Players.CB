@@ -4,11 +4,11 @@
 Const MAIN_PLAYER_NAME = 0      //Viittaa merkkijonoon, joka sisältää pelaajan nimen
 Const MAIN_PLAYER_COLOR = 4     //Viittaa muistipalaan, joka sisältää pelaajan värin
 Const MAIN_PLAYER_CONTROLS = 8  //Viittaa muistipalaan, joka sisältää pelaajan näppäimet
-Const MAIN_PLAYER_DYNAMIC = 12  //Viittaa muistipalaan, joka on tarkoitettu minipelikohtaista tiedontallennusta varten
-Const MAIN_PLAYER_POINTS = 0   //Sisältää pelaajan pisteet (Int)
+Const MAIN_PLAYER_POINTS = 12   //Sisältää pelaajan pisteet (Int)
+Const MAIN_PLAYER_DYNAMIC = 16  //Viittaa muistipalaan, joka on tarkoitettu minipelikohtaista tiedontallennusta varten
 
 //Pelaajan muistipalan koko
-Const MAIN_PLAYER_STATIC_SIZE = 16
+Const MAIN_PLAYER_STATIC_SIZE = 20
 
 //Pelaajien maksimimäärä 8, tietokoneelle harvoin pystyy sen enempää pelaamaan (loppuu näppäimet ja kapulat :D )
 Const MAIN_MAX_PLAYERS = 8
@@ -51,7 +51,8 @@ Function MAIN_AddPlayer(name$, r = -1, g = -1, b = -1)
 		PokeInt player, MAIN_PLAYER_NAME, iS\id
 		PokeInt player, MAIN_PLAYER_COLOR, col
 		PokeInt player, MAIN_PLAYER_CONTROLS, ctrl
-		PokeInt player, MAIN_PLAYER_DYNAMIC, MakeMEMBlock(128)
+		PokeInt player, MAIN_PLAYER_POINTS, 0
+		PokeInt player, MAIN_PLAYER_DYNAMIC, MakeMEMBlock(1)
 		
 		MAIN_Player(number) = player
 
@@ -64,18 +65,14 @@ EndFunction
 // Asettaa ja palauttaa pelaajan pisteet
 Function API_PlayerPoints(number, points = -1)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
-	
 		player = MAIN_Player(number)
 		
-		dynamic = PeekInt(player, MAIN_PLAYER_DYNAMIC)
-		
 		If (points >= 0) Then 
-			PokeInt dynamic, MAIN_PLAYER_POINTS, points
-			Return points  
+			PokeInt player, MAIN_PLAYER_POINTS, points
+			Return points 
 		Else 
-			Return peekint(dynamic, MAIN_PLAYER_POINTS)
+			Return PeekInt(player, MAIN_PLAYER_POINTS)
 		EndIf 
-
 	EndIf 
 	
 	Return 0
