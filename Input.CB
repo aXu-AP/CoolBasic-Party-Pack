@@ -19,7 +19,7 @@ Function API_KeyHit(number, Key)
 
 	If (number >= 0 And number < MAIN_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
-		player = MAIN_Player(number) 
+		player = MAIN_PlayerData(number) 
 		ctrl = PeekInt(player,MAIN_PLAYER_CONTROLS)
 		source = PeekByte(ctrl,API_CONTROL_SOURCE)
 
@@ -35,7 +35,7 @@ End Function
 Function API_KeyDown(number, Key)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
-		player = MAIN_Player(number) 
+		player = MAIN_PlayerData(number) 
 		ctrl = PeekInt(player,MAIN_PLAYER_CONTROLS)
 		source = PeekByte(ctrl,API_CONTROL_SOURCE)
 
@@ -51,7 +51,7 @@ End Function
 Function API_KeyUp(number, Key)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
-		player = MAIN_Player(number) 
+		player = MAIN_PlayerData(number) 
 		ctrl = PeekInt(player,MAIN_PLAYER_CONTROLS)
 		source = PeekByte(ctrl,API_CONTROL_SOURCE)
 

@@ -96,6 +96,8 @@ Function MAIN_SelectGame()
 		
 		DrawGame
 		
+		Color 255, 255, 255
+		
 		For iG.MAIN_Game = Each MAIN_Game
 
 			If (MAIN_PlayerAmount < iG\MaxPlayers) Then 

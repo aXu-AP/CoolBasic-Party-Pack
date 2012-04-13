@@ -1,32 +1,41 @@
 //Lis‰t‰‰n peli pelikokoelmaan nimell‰ TestGame (nime‰ tarvitaan muiden tietojen hakemiseen)
 API_AddGame("AX00")
 
-Function AX00_Game(GameData)
+Const AX00_Ukko = 0
+Const AX00_Teksti = 1
 
+Function AX00_Game(GameData)
 	PlayerCount = API_GetData(GameData, API_PlayerCount)
 	
 	Ukkokuva = API_LoadImage("Naama.png")
 	Maski = API_LoadImage("Naama2.png")
 	
 	API_Recolor(0, Ukkokuva, Maski)
-
-	Ukko = API_MakeObject(72)
-	PaintObject Ukko, -Ukkokuva
-
+	
+	API_PlayerInt(0, AX00_Ukko, API_MakeObject(72))
+	PaintObject API_PlayerInt(0, AX00_Ukko), -Ukkokuva
+	
+	For i = 0 To PlayerCount - 1
+		tmptxt$ = ""
+		For a = 1 To 10
+			tmptxt = tmptxt + Chr(Rand(32, 255))
+		Next a
+		API_PlayerString(i, AX00_Teksti, tmptxt$)
+	Next i
+	
 	Repeat
-		
-		For i=0 To PlayerCount-1
+		For i = 0 To PlayerCount - 1
+			Color API_PlayerColor(i, RED), API_PlayerColor(i, GREEN), API_PlayerColor(i, BLUE)
+			Text 0, i * 15, "Pelaajanro" + i + " merkkijono: " + API_PlayerString(i, AX00_Teksti)
+			
 			//Pelaaja voittaa heti kun painaa nappia
 			If API_KeyHit(i, API_ACTION1) Then
 				API_PlayerPoints(i, 1000)
-				Color API_PlayerColor(i, RED), API_PlayerColor(i, GREEN), API_PlayerColor(i, BLUE)
-				Print "Player " + i + " points: " + API_PlayerPoints(i)
-				WaitKey
 				Return 0
 			EndIf
 		Next i
 
-		TurnObject Ukko, 2
+		TurnObject API_PlayerInt(0, AX00_Ukko), 2
 		API_DrawScreen()
 	Forever
 EndFunction
