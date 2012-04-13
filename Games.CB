@@ -78,6 +78,7 @@ EndFunction
 //näyttää kokoelman pelit ja käynnistää ne niiden logoa klikkaamalla
 Function MAIN_SelectGame()
 	GameData = API_MakeGameData()
+	API_PutData(GameData, API_PlayerCount, API_PlayerAmount)
 	API_PutData(GameData, API_PlayerSetup, "ALLvsALL")
 	
 	marginBig = 20
@@ -119,6 +120,13 @@ Function MAIN_SelectGame()
 			EndIf 
 		Next iG
 		
+		mediaCount = 0
+		For iM.MAIN_Media = Each MAIN_Media
+			mediaCount = mediaCount + 1
+			Text 10, 260 + mediaCount * 15, iM\FileName
+		Next iM
+		Text 0, 260, "Ladattua mediaa: " + mediaCount
+		
 		API_DrawScreen()
 	Forever
 EndFunction 
@@ -126,7 +134,7 @@ EndFunction
 
 //Aloittaa pelin
 Function MAIN_Start(ID$, GameData)
-	MAIN_RunningGameID = ID$ 
+	MAIN_RunningGameID = ID$
 	Select ID
 		Case "AX00"
 			AX00_Game(GameData)
@@ -135,10 +143,12 @@ Function MAIN_Start(ID$, GameData)
 		Default
 			MakeError "Peliä " + Name + " ei löytynyt!"
 	EndSelect
+	MAIN_ClearMedia("*CLONE")
+	MAIN_RunningGameID = ""
 EndFunction
 
 
-//GameData-palikkaan tallennettavat tiedot (huom. jos muutat, muuta myös GetData ja WriteData funktioiden select-caseja):
+//GameData-palikkaan tallennettavat tiedot (huom. jos muutat, muuta myös GetData ja WriteData funktioiden select-caseja)
 Const API_PlayerCount = 0
 Const API_PlayerSetup = 1
 //Sisältää GameData-palikan koon

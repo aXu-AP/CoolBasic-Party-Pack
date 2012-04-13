@@ -1,0 +1,64 @@
+//Näitä käytetään myös pelajille. 
+//Varo muutoksia!
+//Tässä määritellään vakiot, joilla viitataan eri näppäimiin
+Const API_UP       = 0 
+Const API_DOWN     = 1
+Const API_LEFT     = 2
+Const API_RIGHT    = 3
+Const API_ACTION1  = 4
+Const API_ACTION2  = 5
+Const API_CONTROL_SOURCE  = 6
+
+//Otetaan ylös toimintojen määrä jottei tartte käyttää taikavakioita
+Const API_ACTIONS  = 6
+
+Const API_KEYBOARD 	= 1 
+
+//Korvaa KeyHit()
+Function API_KeyHit(number, Key)
+
+	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
+
+		player = API_Player(number) 
+		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		source = PeekByte(ctrl,API_CONTROL_SOURCE)
+
+		If (source = API_KEYBOARD) Then 
+			Return KeyHit(PeekByte(ctrl,Key))
+		EndIf 
+		
+	EndIf
+	Return False
+End Function
+
+//Korvaa KeyDown()
+Function API_KeyDown(PlayerID, Key)
+	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
+
+		player = API_Player(number) 
+		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		source = PeekByte(ctrl,API_CONTROL_SOURCE)
+
+		If (source = API_KEYBOARD) Then 
+			Return KeyDown(PeekByte(ctrl,Key))
+		EndIf 
+		
+	EndIf
+	Return False
+End Function
+
+//Korvaa KeyUp()
+Function API_KeyUp(PlayerID, Key)
+	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
+
+		player = API_Player(number) 
+		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		source = PeekByte(ctrl,API_CONTROL_SOURCE)
+
+		If (source = API_KEYBOARD) Then 
+			Return KeyUp(PeekByte(ctrl,Key))
+		EndIf 
+		
+	EndIf
+	Return False
+End Function

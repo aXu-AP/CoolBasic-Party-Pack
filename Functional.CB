@@ -1,7 +1,7 @@
 //Näytön piirtämiseen ja skaalaamiseen tarvittavia muuttujia
 Global API_RenderW, API_RenderH, API_RenderZoom
 Global API_ScreenW, API_ScreenH
-Global MAIN_MidImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
+Global MAIN_MidImage, MAIN_FinImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
 
 // Vaihtaa renderöintiresoluutiota
 Function API_Resolution(w, h)
@@ -13,6 +13,7 @@ Function API_Resolution(w, h)
 	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
 		If MAIN_MidImage Then DeleteImage MAIN_MidImage
 		MAIN_MidImage = MakeImage(API_RenderW, API_RenderH * API_RenderZoom)
+		MAIN_FinImage = MakeImage(API_RenderW * API_RenderZoom, API_RenderH * API_RenderZoom)
 		MAIN_ScreenOffsetX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
 		MAIN_ScreenOffsetY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
 	EndIf
@@ -61,65 +62,31 @@ Function API_DrawScreen()
 	//Skaalataan vain jos ruudun koko ei vastaa haluttua
 	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
 		For y = 0 To API_RenderH - 1
-			For i = 0 To API_RenderZoom
-				CopyBox 0,  y, API_RenderW, 1, 0, y * API_RenderZoom + i, SCREEN(), Image(MAIN_MidImage)
-			Next i
+			CopyBox 0,  y, API_RenderW, 1, 0, y * API_RenderZoom + i, SCREEN(), Image(MAIN_MidImage)
 		Next y
 		
 		Cls 
-		DrawToWorld OFF
+		DrawToWorld OFF, OFF
 		
 		For x = 0 To API_RenderW - 1
-			For i = 0 To API_RenderZoom
-				DestinationX = Int(CameraX()) + x * API_RenderZoom + i - API_ScreenW / 2 + MAIN_ScreenOffsetX
-				DestinationY = Int(-CameraY())                         - API_ScreenH / 2 + MAIN_ScreenOffsetY
-				
-				CopyBox x, 0, API_RenderZoom, API_RenderH * API_RenderZoom, DestinationX, DestinationY, Image(MAIN_MidImage), SCREEN()
-			Next i
+			DestinationX = x * API_RenderZoom + i'Int(CameraX()) + x * API_RenderZoom + i - API_ScreenW / 2 + MAIN_ScreenOffsetX
+			DestinationY = 0'Int(-CameraY())                         - API_ScreenH / 2 + MAIN_ScreenOffsetY
+			
+			CopyBox x, 0, 1, API_RenderH * API_RenderZoom, DestinationX, DestinationY, Image(MAIN_MidImage), Image(MAIN_FinImage)
 		Next x
+		
+		DestinationX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
+		DestinationY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
+		For y = DestinationY To DestinationY + API_RenderZoom - 1
+			For x = DestinationX To DestinationX + API_RenderZoom - 1
+				DrawImage MAIN_FinImage, x, y
+			Next x
+		Next y
 	EndIf
 	
 	DrawScreen
 EndFunction	
 
-
-//Korvaa LoadImage
-Function API_LoadImage(file$)
-	//TODO: virheidenkäsittely kun tiedostoa ei löydy
-	file$ = Str(MAIN_LocateMedia(file$))
-	Return LoadImage(file$)
-EndFunction
-
-
-//Korvaa LoadObject
-Function API_LoadObject(file$,rotation)
-	//TODO: virheidenkäsittely kun tiedostoa ei löydy
-	file$ = Str(MAIN_LocateMedia(file$))
-	Return LoadObject(file$,rotation)
-EndFunction
-
-
-//Korvaa MakeObjectFloorin
-Function API_MakeObjectFloor()
-	Return MakeObjectFloor() 
-EndFunction
-
-
-//Etsii tiedostoa pelin kansiosta ja media kansiosta
-//auttaa lyhentämään ladattavien kuvien yms. nimiä
-//Palauttaa polun merkkijonona jos tiedosto löytyy
-//Palauttaa tyhjän merkkijonon jos tiedostoa ei löydy
-Function MAIN_LocateMedia(file$) 
-	//TODO: Onko media kansion sijainti lopullinen?
-	gamePath$ = "Games/"+MAIN_RunningGameID+"/" 
-	mediaPath$ = "Media/"
-
-	If (FileExists(gamePath$+file$)) Then Return gamePath$+file$ 
-	If (FileExists(mediaPath$+file$)) Then Return mediaPath$+file$
-	If FileExists(file$) Then Return file$
-	
-	Return ""
-EndFunction 
 
 
 //Hiiren x-koordinaatti renderöintikoordinaatistossa
@@ -145,16 +112,18 @@ EndFunction
 //Värjää kuvan pelaajan tunnusvärillä
 //Erityisesti harmaasävyisille kuville
 //Palauttaa kuvan 
-Function API_Recolor(playerID, img, overlayImg = 0)
+Function API_Recolor(number, img, overlayImg = 0)
 
-	p.API_Player = ConvertToType(playerID)
+	If (number >= 0 And number < API_MAX_PLAYERS) Then
 	
-	If ( p <> NULL) Then 
+		player = API_Player(number)
+		
+		col = peekint(player,API_PLAYER_COLOR)
 	
 		//Pelaajan värin suhteellinen voimakkuus 0.0 - 1.0
-		redAmount#   = Float(PeekByte(p\static,API_PLAYER_RED))   / 255.0
-		greenAmount# = Float(PeekByte(p\static,API_PLAYER_GREEN)) / 255.0
-		blueAmount#  = Float(PeekByte(p\static,API_PLAYER_BLUE))  / 255.0
+		redAmount#   = Float(PeekByte(col,RED))   / 255.0
+		greenAmount# = Float(PeekByte(col,GREEN)) / 255.0
+		blueAmount#  = Float(PeekByte(col,BLUE))  / 255.0
 		
 		If ( img <> 0 ) Then 
 	

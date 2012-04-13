@@ -3,6 +3,8 @@ API_Screen(640,480, 1)
 API_Resolution(640, 480)
 
 Include "Players.cb"        //Pelaajien hallinta
+Include "Input.cb"        //Pelaajien hallinta
+Include "Media.cb"          //Median lataaminen, tuhoaminen
 Include "Functional.cb"     //Sekalaisia funktioita
 Include "Gamesettings.cb"
 Include "Games.cb"          //Sis‰lt‰‰ kaiken minipelien hallintaa varten

@@ -21,17 +21,20 @@ EndType
 
 Function ME00_Game(GameData)
 
+	PlayerCount = API_GetData(GameData, API_PlayerCount)
+
 	//luodaan pelaajille alukset
-	For p.API_Player = Each API_PLAYER
+	For i=0 To PlayerCount-1
 	
 		s.ME00_Ship = New(ME00_Ship)
+		
 		s\img = API_LoadImage("ship.png")
 		
-		API_Recolor(p\id,s\img)
+		API_Recolor(i,s\img)
 		
-		s\playerID = p\id
+		s\playerID = i
 	
-	Next p
+	Next i
 	
 	background = API_MakeObjectFloor()
 	stars = API_LoadImage("stars.png")
@@ -63,17 +66,5 @@ Function ME00_Game(GameData)
 		
 		API_DrawScreen()
 	Until EscapeKey()
-	
-	DeleteObject background
-	DeleteImage stars
-	
-	For s.ME00_Ship=Each ME00_Ship
-		DeleteImage s\img
-		Delete s
-	Next s
-	
-	Cls 
-	
-	
-	
+
 EndFunction
