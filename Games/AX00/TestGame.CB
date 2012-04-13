@@ -2,17 +2,26 @@
 API_AddGame("AX00")
 
 Function AX00_Game(GameData)
+
+	PlayerCount = API_GetData(GameData, API_PlayerCount)
+	
 	Ukkokuva = API_LoadImage("Naama.png")
 	Maski = API_LoadImage("Naama2.png")
-	API_Recolor(Ukkokuva, 0, Maski)
+	
+	API_Recolor(0, Ukkokuva, Maski)
+
 	Ukko = API_MakeObject(72)
 	PaintObject Ukko, -Ukkokuva
+
 	Repeat
-		For i = 0 To API_GetData(GameData, API_PlayerCount) - 1
+		
+		For i=0 To PlayerCount-1
 			//Pelaaja voittaa heti kun painaa nappia
-			If API_KeyHit(i, API_ACTION1) Then API_PlayerScore(i) = 1000 : Return 0
+			If API_KeyHit(i, API_ACTION1) Then API_PlayerPoints(i,1000) : Return 0
+
 		Next i
-		TurnObject Ukko, 3
+
+		TurnObject Ukko, 2
 		API_DrawScreen()
 	Forever
 EndFunction

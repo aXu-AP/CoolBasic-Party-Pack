@@ -1,0 +1,186 @@
+
+//pelaajan muistipalan offsettejä
+
+//pelaajan nimi
+Const API_PLAYER_NAME = 0
+
+//pelaajan väri
+Const API_PLAYER_COLOR = 4
+
+//pelaajan väri
+Const API_PLAYER_CONTROLS = 8
+
+//pelaajan data
+Const API_PLAYER_DYNAMIC = 12
+
+//Pelaajan muistipalan koko
+Const API_PLAYER_STATIC_SIZE = 16
+
+Const API_PLAYER_DYN_POINTS = 0
+
+Const API_MAX_PLAYERS = 4
+
+Dim API_Player(API_MAX_PLAYERS) As integer 
+
+Global API_PlayerAmount 
+API_PlayerAmount = 0
+
+Type API_PlayerString
+    Field id
+	Field txt$
+EndType
+
+//Lisää pelaajan ja värin
+Function API_AddPlayer(name$, r=-1,g=-1,b=-1)
+
+	number = -1
+
+	For i=0 To API_MAX_PLAYERS-1
+	
+		If( API_Player(i) = 0) Then number = i : Exit 
+	
+	Next i
+	
+	If (number <> -1) Then 
+	
+		API_PlayerAmount = API_PlayerAmount + 1
+	
+		player = MakeMEMBlock(API_PLAYER_STATIC_SIZE)
+		
+		iS. API_PlayerString = New(API_PlayerString)
+		iS\txt$ = name$
+		iS\id = ConvertToInteger(iS)  
+
+		col = MakeMEMBlock(4)
+		ctrl = MakeMEMBlock(API_ACTIONS+1)
+		
+		PokeInt player,API_PLAYER_NAME,iS\id
+		PokeInt player,API_PLAYER_COLOR,col
+		PokeInt player,API_PLAYER_CONTROLS,ctrl
+		PokeInt player,API_PLAYER_DYNAMIC,MakeMEMBlock(128)
+		
+		API_Player(number) = player
+
+		API_SetPlayerColor(number,r,g,b)
+
+	EndIf 
+	
+EndFunction 
+
+// Asettaa ja palauttaa pelaajan pisteet
+Function API_PlayerPoints(number,points=-1)
+
+	If (number >= 0 And number < API_MAX_PLAYERS) Then
+	
+		player = API_Player(number)
+		
+		dynamic = PeekInt(player,API_PLAYER_DYNAMIC)
+		
+		If ( points >= 0) Then 
+			PokeInt dynamic,API_PLAYER_DYN_POINTS,points
+			Return points  
+		Else 
+			Return peekint(dynamic,API_PLAYER_DYN_POINTS)
+		EndIf 
+
+	EndIf 
+	
+	Return 0
+
+EndFunction 
+
+Function API_SetPlayerColor(number,r=-1,g=-1,b=-1)
+
+	If (number >= 0 And number < API_MAX_PLAYERS) Then
+	
+		player = API_Player(number)
+		
+		col = peekint(player,API_PLAYER_COLOR)
+	
+		If (r < 0 Or g < 0 Or b < 0 Or r > 255 Or g > 255 Or b > 255) Then 
+		
+			c = Rand(1,6)
+			c = c Shl 29
+			PokeByte col,RED, 127+127*(c Shr 31) 
+			
+			c = c Shl 1
+			PokeByte col,GREEN, 127+127*(c Shr 31) 
+			
+			c = c Shl 1 
+			PokeByte col,BLUE, 127+127*(c Shr 31) 
+		
+		Else 
+		
+			PokeByte col,RED,r
+			PokeByte col,GREEN,g
+			PokeByte col,BLUE,b
+
+		EndIf   
+	
+	EndIf 
+	
+EndFunction 
+
+//Kopioi staatisen ja/tai dynaamisen muistipalan
+//pelaajalle jos annettu pala on erisuuri kuin nolla
+Function MAIN_SetPlayerData(number, static=0, dynamic=0)
+
+	If (number >= 0 And number < API_MAX_PLAYERS) Then
+
+		player = API_Player(number) 
+		
+		If (static <> 0 And MEMBlockSize(static) = API_PLAYER_STATIC_SIZE) Then 
+			MemCopy static,0,player,0,API_PLAYER_STATIC_SIZE
+		EndIf 
+		
+		p_dynamic = PeekInt(player,API_PLAYER_DYNAMIC)
+		
+		If (dynamic <> 0 ) Then
+			size = MEMBlockSize(dynamic)
+			ResizeMEMBlock p_dynamic,size
+			MemCopy dynamic,0,p_dynamic,0,size
+			PokeInt player,API_PLAYER_DYNAMIC,p_dynamic
+		EndIf 
+	
+	EndIf 
+
+EndFunction 
+
+//Lataa defaulttiasetukset 
+//TODO: mahdollista näppäinten lataus tiedostosta, 
+//mieluiten Gamesettinginsin kautta
+Function MAIN_LoadKeys()
+
+	If ( API_Player(0) <> 0) Then
+	
+		player = API_Player(0)
+		
+		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		
+		PokeByte ctrl, API_UP, 		200 //Ylös nuoli
+		PokeByte ctrl, API_DOWN, 	208 //Alas nuoli
+		PokeByte ctrl, API_LEFT, 	203 //Vasen nuoli
+		PokeByte ctrl, API_RIGHT, 	205 //Oikea nuoli
+		PokeByte ctrl, API_ACTION1, 54  //Oikea shift
+		PokeByte ctrl, API_ACTION2, 221 //Oikea ctrl
+		PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
+	EndIf 
+		
+	If ( API_Player(1) <> 0) Then
+	
+		player = API_Player(1)
+		
+		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		
+		PokeByte ctrl, API_UP, 		17 //W
+		PokeByte ctrl, API_DOWN,	31 //S
+		PokeByte ctrl, API_LEFT, 	30 //A
+		PokeByte ctrl, API_RIGHT, 	32 //D
+		PokeByte ctrl, API_ACTION1, 42 //Vasen shift
+		PokeByte ctrl, API_ACTION2, 86 //<>
+		PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
+	
+	EndIf 
+
+
+End Function

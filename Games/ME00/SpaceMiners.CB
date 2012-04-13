@@ -1,11 +1,13 @@
 //Lis‰t‰‰n peli pelikokoelmaan nimell‰ TestGame (nime‰ tarvitaan muiden tietojen hakemiseen)
 API_AddGame("ME00")
 
+SAFEEXIT OFF 
+
 Type ME00_Ship
 	Field x As Float
 	Field y As Float
 	Field img As integer
-	Field player As Byte
+	Field playerID
 	Field hp As Float
 	Field coins As integer
 EndType
@@ -18,56 +20,61 @@ Type ME00_Rock
 EndType
 
 Function ME00_Game(GameData)
-	// later replaced with API
-	SW = API_RenderW
-	SH = API_RenderH
 
 	
-
-	playerCount = API_GetData(GameData, API_PlayerCount)
-
+	PlayerCount = API_GetData(GameData, API_PlayerCount)
+	
 	//luodaan pelaajille alukset
-	For i=0 To playerCount-1
+	For i=0 To PlayerCount-1
 	
-		s.ME00_Ship = New (ME00_Ship)
+		s.ME00_Ship = New(ME00_Ship)
+		
 		s\img = API_LoadImage("ship.png")
 		
-
-		API_Recolor(s\img,i)
+		s\y = API_RenderH/2.0 +i * 30
 		
-		s\player = i
+		API_Recolor(i,s\img)
+		
+		s\playerID = i
 	
 	Next i
 	
 	background = API_MakeObjectFloor()
-	stars = API_LoadImage(mediaLocation$+"stars.png")
+	stars = API_LoadImage("stars.png")
 	PaintObject background,stars
 	
+	TranslateCamera 0,ImageHeight(stars)/2
 
+	
 	Repeat
 	
 		DrawGame 
-	
+
 		For s.ME00_Ship=Each ME00_Ship
 		
-			s\y = s\y + ( API_KeyDown(s\player, API_DOWN) - API_KeyDown(s\player, API_UP) ) * API_RenderZoom
+			s\y = s\y + ( API_KeyDown(s\playerID, API_DOWN) - API_KeyDown(s\playerID, API_UP) )  * API_RenderZoom
 			
-			If ( API_KeyDown(s\player, API_RIGHT) ) Then 
-				s\x = CurveValue(SW/3.0,s\x,50.0) 
-				speed# = CurveValue(7.0 * API_RenderZoom,speed#,100.0) 
+			If ( API_KeyDown(s\playerID, API_RIGHT) ) Then 
+				s\x = CurveValue(API_RenderW/3.0,s\x,50.0) 
+				speed# = CurveValue(7.0 * API_RenderZoom ,speed#,100.0) 
 			Else
-				s\x = CurveValue(SW/10.0,s\x,100.0)
+				s\x = CurveValue(API_RenderW/10.0,s\x,100.0)
 				speed# = 1.0 * API_RenderZoom
 			EndIf 
-			
+
 			TranslateCamera speed#,0
-			
+
 			DrawImage s\img,s\x, s\y
+			
 		
 		Next s
 		
-	
 		API_DrawScreen()
-	Forever
+	Until EscapeKey()
 	
+	For s.ME00_Ship=Each ME00_Ship
+		Delete s
+	Next s
+
+
 EndFunction

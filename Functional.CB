@@ -3,11 +3,6 @@ Global API_RenderW, API_RenderH, API_RenderZoom
 Global API_ScreenW, API_ScreenH
 Global MAIN_MidImage, MAIN_FinImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
 
-//Kutakuinkin jokainen minipeli pit‰‰ kirjaa pelaajien pisteist‰. Ettei jokaiseen minipeliin tarvitse tehd‰ omaa taulukkoa/muistipalaa tai
-//muuta tapaa tallentaa v‰liaikaispisteit‰, luodaan kaikille peleille yhteinen taulukko.
-Dim API_PlayerScore(3)                          //T‰h‰n tallennetaan pelaajien v‰liaikaiset pisteet
-
-
 // Vaihtaa renderˆintiresoluutiota
 Function API_Resolution(w, h)
 	API_RenderW = w
@@ -44,6 +39,7 @@ Function API_Screen(Width = 0, Height = 0, Windowed = 0)
 	If API_RenderW = 0 Or API_RenderH = 0 Then
 		API_RenderW = API_ScreenW
 		API_RenderW = API_ScreenW
+		API_RenderZoom = 1
 	EndIf
 	
 	SCREEN API_ScreenW, API_ScreenH, 0, Windowed
@@ -112,62 +108,64 @@ Function API_MouseInBox(x,y,w,h)
 EndFunction 
 
 
-// T‰st‰ taulukosta lˆytyy pelaajien v‰rit
-// voidaan k‰ytt‰‰ CoolBasicin omia RED, GREEN ja BLUE vakioita
-// komponettien erottamiseen. Ensimm‰inen numero on pelaajan numero
-// Esim. API_PlayerColor(2,RED)	 
-Dim API_PlayerColor(3,3) As Byte 	
-
 
 //V‰rj‰‰ kuvan pelaajan tunnusv‰rill‰
-//V‰ri haetaan API_PlayerColor taulukosta
 //Erityisesti harmaas‰vyisille kuville
 //Palauttaa kuvan 
-Function API_Recolor(img, playerNumber, overlayImg = 0)
-	//Pelaajan v‰rin suhteellinen voimakkuus 0.0 - 1.0
-	redAmount#   = Float(API_PlayerColor(playerNumber,RED))   / 255.0
-	greenAmount# = Float(API_PlayerColor(playerNumber,GREEN)) / 255.0
-	blueAmount#  = Float(API_PlayerColor(playerNumber,BLUE))  / 255.0
-	
-	If ( img <> 0 ) Then 
+Function API_Recolor(number, img, overlayImg = 0)
 
-		//lukittu kuva ett‰ saadaan nopeutta
-		Lock Image(img)
-			For x=0 To ImageWidth(img)-1
-				For y=0 To ImageHeight(img)-1
-				
-					//pikselista RGB
-					pixel = GetPixel2 (x,y,Image(img))
-					
-					pixel = pixel Shl 8
-					r = pixel Shr 24
-					
-					pixel = pixel Shl 8
-					g = pixel Shr 24
-					
-					pixel = pixel Shl 8
-					b = pixel Shr 24 
-					
-					// kerrotaan kukin pikseliarvo suhteellisella voimakkuudella
-					r = Float(r) * redAmount# 
-					g = Float(g) * greenAmount# 
-					b = Float(b) * blueAmount# 
-					
-					//RGB:st‰ pikseli
-					p = b + (g Shl 8) + (r Shl 16) + (255 Shl 24)
-					
-					PutPixel2 x,y,p,Image(img)
-					
-				Next y
-			Next x
-		Unlock Image(img)
+	If (number >= 0 And number < API_MAX_PLAYERS) Then
+	
+		player = API_Player(number)
 		
-		//Lis‰t‰‰n p‰‰lle toinen kuva jos se on annettu
-		If (overlayImg <> 0) Then
-			DrawToImage img
-				DrawImage overlayImg, 0, 0
-			DrawToScreen
-		EndIf
+		col = PeekInt(player,API_PLAYER_COLOR)
+	
+		//Pelaajan v‰rin suhteellinen voimakkuus 0.0 - 1.0
+		redAmount#   = Float(PeekByte(col,RED))   / 255.0
+		greenAmount# = Float(PeekByte(col,GREEN)) / 255.0
+		blueAmount#  = Float(PeekByte(col,BLUE))  / 255.0
+		
+		If ( img <> 0 ) Then 
+		
+			//lukittu kuva ett‰ saadaan nopeutta
+			Lock Image(img)
+				For x=0 To ImageWidth(img)-1
+					For y=0 To ImageHeight(img)-1
+					
+						//pikselista RGB
+						pixel = GetPixel2 (x,y,Image(img))
+						
+						pixel = pixel Shl 8
+						r = pixel Shr 24
+						
+						pixel = pixel Shl 8
+						g = pixel Shr 24
+						
+						pixel = pixel Shl 8
+						b = pixel Shr 24 
+						
+						// kerrotaan kukin pikseliarvo suhteellisella voimakkuudella
+						r = Float(r) * redAmount# 
+						g = Float(g) * greenAmount# 
+						b = Float(b) * blueAmount# 
+						
+						//RGB:st‰ pikseli
+						pixel = b + (g Shl 8) + (r Shl 16) + (255 Shl 24)
+						
+						PutPixel2 x,y,pixel,Image(img)
+						
+					Next y
+				Next x
+			Unlock Image(img)
+			
+			//Lis‰t‰‰n p‰‰lle toinen kuva jos se on annettu
+			If (overlayImg <> 0) Then
+				DrawToImage img
+					DrawImage overlayImg, 0, 0
+				DrawToScreen
+			EndIf
+		EndIf 
+		
 	EndIf 
 	
 	Return img

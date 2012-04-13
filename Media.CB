@@ -275,10 +275,10 @@ EndFunction
 //Korvaa LoadImage
 Function API_LoadImage(FileName$)
 	//TODO: virheidenkäsittely kun tiedostoa ei löydy
-	FileName = MAIN_LocateMedia(Replace(FileName, "\", "/"))
+	FileName$ = MAIN_LocateMedia(Replace(FileName$, "\", "/"))
 	
 	For iM.MAIN_Media = Each MAIN_Media
-		If FileName = iM\FileName And iM\MediaType = MAIN_Image Then
+		If FileName$ = iM\FileName And iM\MediaType = MAIN_Image Then
 			nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
 			Return nM\Media
 		EndIf
@@ -287,7 +287,7 @@ Function API_LoadImage(FileName$)
 	iM.MAIN_Media = New(MAIN_Media)
 	iM\MediaType = MAIN_Image
 	iM\FileName = FileName
-	iM\Media = LoadImage(FileName)
+	iM\Media = LoadImage(FileName$)
 	
 	nM.MAIN_Media = ConvertToType(MAIN_CloneMedia(ConvertToInteger(iM)))
 	Return nM\Media
