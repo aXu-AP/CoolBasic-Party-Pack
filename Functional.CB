@@ -1,48 +1,50 @@
 //Näytön piirtämiseen ja skaalaamiseen tarvittavia muuttujia
-Global API_RenderW, API_RenderH, API_RenderZoom
-Global API_ScreenW, API_ScreenH
+Global API_RenderW, API_RenderH, MAIN_RenderZoom
+Global MAIN_ScreenW, MAIN_ScreenH
 Global MAIN_MidImage, MAIN_FinImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
 
 // Vaihtaa renderöintiresoluutiota
-Function API_Resolution(w, h)
+Function MAIN_Resolution(w, h)
 	API_RenderW = w
 	API_RenderH = h
 	
-	API_RenderZoom = Min(RoundDown(Float(API_ScreenW) / API_RenderW), RoundDown(Float(API_ScreenH) / API_RenderH))
+	MAIN_RenderZoom = Min(RoundDown(Float(MAIN_ScreenW) / API_RenderW), RoundDown(Float(MAIN_ScreenH) / API_RenderH))
+	Print "W: " + Float(MAIN_ScreenW) / API_RenderW
+	Print "H: " + Float(MAIN_ScreenH) / API_RenderH
 	
-	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
+	If MAIN_ScreenW <> API_RenderW Or MAIN_ScreenH <> API_RenderH Then
 		If MAIN_MidImage Then DeleteImage MAIN_MidImage
-		MAIN_MidImage = MakeImage(API_RenderW, API_RenderH * API_RenderZoom)
-		MAIN_FinImage = MakeImage(API_RenderW * API_RenderZoom, API_RenderH * API_RenderZoom)
-		MAIN_ScreenOffsetX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
-		MAIN_ScreenOffsetY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
+		MAIN_MidImage = MakeImage(API_RenderW, API_RenderH * MAIN_RenderZoom)
+		MAIN_FinImage = MakeImage(API_RenderW * MAIN_RenderZoom, API_RenderH * MAIN_RenderZoom)
+		MAIN_ScreenOffsetX = (MAIN_ScreenW - API_RenderW * MAIN_RenderZoom) / 2
+		MAIN_ScreenOffsetY = (MAIN_ScreenH - API_RenderH * MAIN_RenderZoom) / 2
 	EndIf
 EndFunction
 
 
 // Asettaa näytön resoluution
 // Korvaa Screen komennon
-Function API_Screen(Width = 0, Height = 0, Windowed = 0)
+Function MAIN_Screen(Width = 0, Height = 0, Windowed = 0)
 	// Natiiviresoluutio jos 0, 0
 	If (Width = 0 And Height = 0) Then
 	   SCREEN 0, 0, 0, 0
-	   API_ScreenW = ScreenWidth()
-	   API_ScreenH = ScreenHeight()
+	   MAIN_ScreenW = ScreenWidth()
+	   MAIN_ScreenH = ScreenHeight()
 	Else
-		API_ScreenW = Width
-		API_ScreenH = Height
+		MAIN_ScreenW = Width
+		MAIN_ScreenH = Height
 		
-		If Not GFXModeExists(API_ScreenW, API_ScreenH, 32) Then Windowed = 1
+		If Not GFXModeExists(MAIN_ScreenW, MAIN_ScreenH, 32) Then Windowed = 1
 	EndIf
 	
 	// Aseta samoiksi ettei jää nollaan
 	If API_RenderW = 0 Or API_RenderH = 0 Then
-		API_RenderW = API_ScreenW
-		API_RenderW = API_ScreenW
-		API_RenderZoom = 1
+		API_RenderW = MAIN_ScreenW
+		API_RenderW = MAIN_ScreenW
+		MAIN_RenderZoom = 1
 	EndIf
 	
-	SCREEN API_ScreenW, API_ScreenH, 0, Windowed
+	SCREEN MAIN_ScreenW, MAIN_ScreenH, 0, Windowed
 	
 	//TODO: lataa aina tarvittavat kuvat ja äänet uudestaan
 EndFunction 
@@ -60,29 +62,28 @@ Function API_DrawScreen()
 	//TODO: Simuloi hiirtä kokoruudulla
 
 	//Skaalataan vain jos ruudun koko ei vastaa haluttua
-	If API_ScreenW <> API_RenderW Or API_ScreenH <> API_RenderH Then
+	If MAIN_ScreenW <> API_RenderW Or MAIN_ScreenH <> API_RenderH Then
 		For y = 0 To API_RenderH - 1
-			CopyBox 0,  y, API_RenderW, 1, 0, y * API_RenderZoom + i, SCREEN(), Image(MAIN_MidImage)
+			CopyBox 0,  y, API_RenderW, 1, 0, y * MAIN_RenderZoom + i, SCREEN(), Image(MAIN_MidImage)
 		Next y
 		
 		Cls 
 		DrawToWorld OFF, OFF
 		
 		For x = 0 To API_RenderW - 1
-			DestinationX = x * API_RenderZoom + i'Int(CameraX()) + x * API_RenderZoom + i - API_ScreenW / 2 + MAIN_ScreenOffsetX
-			DestinationY = 0'Int(-CameraY())                         - API_ScreenH / 2 + MAIN_ScreenOffsetY
-			
-			CopyBox x, 0, 1, API_RenderH * API_RenderZoom, DestinationX, DestinationY, Image(MAIN_MidImage), Image(MAIN_FinImage)
+			CopyBox x, 0, 1, API_RenderH * MAIN_RenderZoom, x * MAIN_RenderZoom + i, 0, Image(MAIN_MidImage), Image(MAIN_FinImage)
 		Next x
 		
-		DestinationX = (API_ScreenW - API_RenderW * API_RenderZoom) / 2
-		DestinationY = (API_ScreenH - API_RenderH * API_RenderZoom) / 2
-		For y = DestinationY To DestinationY + API_RenderZoom - 1
-			For x = DestinationX To DestinationX + API_RenderZoom - 1
+		DestinationX = (MAIN_ScreenW - API_RenderW * MAIN_RenderZoom) / 2
+		DestinationY = (MAIN_ScreenH - API_RenderH * MAIN_RenderZoom) / 2
+		For y = DestinationY To DestinationY + MAIN_RenderZoom - 1
+			For x = DestinationX To DestinationX + MAIN_RenderZoom - 1
 				DrawImage MAIN_FinImage, x, y
 			Next x
 		Next y
 	EndIf
+	
+	SetWindow "FPS: " + FPS()
 	
 	DrawScreen
 EndFunction	
@@ -91,12 +92,12 @@ EndFunction
 
 //Hiiren x-koordinaatti renderöintikoordinaatistossa
 Function API_MouseX()
-	Return (MouseX()- MAIN_ScreenOffsetX) / API_RenderZoom 
+	Return (MouseX()- MAIN_ScreenOffsetX) / MAIN_RenderZoom 
 EndFunction 
 
 //Hiiren y-koordinaatti renderöintikoordinaatistossa
 Function API_MouseY()
-	Return (MouseY()- MAIN_ScreenOffsetY) / API_RenderZoom 
+	Return (MouseY()- MAIN_ScreenOffsetY) / MAIN_RenderZoom 
 EndFunction 
 
 //Palauttaa 1 jos hiiri on renderöintikoordinaatistossa
@@ -114,11 +115,11 @@ EndFunction
 //Palauttaa kuvan 
 Function API_Recolor(number, img, overlayImg = 0)
 
-	If (number >= 0 And number < API_MAX_PLAYERS) Then
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
 	
-		player = API_Player(number)
+		player = MAIN_Player(number)
 		
-		col = PeekInt(player,API_PLAYER_COLOR)
+		col = PeekInt(player,MAIN_PLAYER_COLOR)
 	
 		//Pelaajan värin suhteellinen voimakkuus 0.0 - 1.0
 		redAmount#   = Float(PeekByte(col,RED))   / 255.0

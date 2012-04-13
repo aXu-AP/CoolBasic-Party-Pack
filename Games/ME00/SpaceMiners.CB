@@ -52,14 +52,14 @@ Function ME00_Game(GameData)
 
 		For s.ME00_Ship=Each ME00_Ship
 		
-			s\y = s\y + ( API_KeyDown(s\playerID, API_DOWN) - API_KeyDown(s\playerID, API_UP) )  * API_RenderZoom
+			s\y = s\y + ( API_KeyDown(s\playerID, API_DOWN) - API_KeyDown(s\playerID, API_UP) )
 			
 			If ( API_KeyDown(s\playerID, API_RIGHT) ) Then 
 				s\x = CurveValue(API_RenderW/3.0,s\x,50.0) 
-				speed# = CurveValue(7.0 * API_RenderZoom ,speed#,100.0) 
+				speed# = CurveValue(7.0,speed#,100.0) 
 			Else
 				s\x = CurveValue(API_RenderW/10.0,s\x,100.0)
-				speed# = 1.0 * API_RenderZoom
+				speed# = 1.0
 			EndIf 
 
 			TranslateCamera speed#,0

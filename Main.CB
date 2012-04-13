@@ -1,17 +1,17 @@
 //Resoluutio on viel‰ mietinn‰n alla
-API_Screen(640,480, 1)
-API_Resolution(640, 480)
+MAIN_Screen(640, 480, 1)
+MAIN_Resolution(640, 480)
 
 Include "Players.cb"        //Pelaajien hallinta
-Include "Input.cb"        //Pelaajien hallinta
+Include "Input.cb"          //Syˆtefunktiot
 Include "Media.cb"          //Median lataaminen, tuhoaminen
 Include "Functional.cb"     //Sekalaisia funktioita
 Include "Gamesettings.cb"
 Include "Games.cb"          //Sis‰lt‰‰ kaiken minipelien hallintaa varten
 
-API_AddPlayer("Pelle pelaaja",0,255,0)
-API_AddPlayer("Fiia fr‰g‰‰j‰",0,0,255)
-API_AddPlayer("Jonne E. S.",255,0,0)
+MAIN_AddPlayer("Pelle pelaaja", 0, 255, 0)
+MAIN_AddPlayer("Fiia fr‰g‰‰j‰", 0, 0, 255)
+MAIN_AddPlayer("Jonne E. S.", 255, 0, 0)
 
 MAIN_LoadKeys()
 MAIN_SelectGame()

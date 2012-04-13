@@ -78,7 +78,7 @@ EndFunction
 //n‰ytt‰‰ kokoelman pelit ja k‰ynnist‰‰ ne niiden logoa klikkaamalla
 Function MAIN_SelectGame()
 	GameData = API_MakeGameData()
-	API_PutData(GameData, API_PlayerCount, API_PlayerAmount)
+	API_PutData(GameData, API_PlayerCount, MAIN_PlayerAmount)
 	API_PutData(GameData, API_PlayerSetup, "ALLvsALL")
 	
 	marginBig = 20
@@ -98,7 +98,7 @@ Function MAIN_SelectGame()
 		
 		For iG.MAIN_Game = Each MAIN_Game
 
-			If (API_PlayerAmount < iG\MaxPlayers) Then 
+			If (MAIN_PlayerAmount < iG\MaxPlayers) Then 
 			
 				y = marginBig + rowHeight + gameCount * (100 + marginBig/2)
 	

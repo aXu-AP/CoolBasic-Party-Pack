@@ -17,10 +17,10 @@ Const API_KEYBOARD 	= 1
 //Korvaa KeyHit()
 Function API_KeyHit(number, Key)
 
-	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
+	If (number >= 0 And number < MAIN_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
-		player = API_Player(number) 
-		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		player = MAIN_Player(number) 
+		ctrl = PeekInt(player,MAIN_PLAYER_CONTROLS)
 		source = PeekByte(ctrl,API_CONTROL_SOURCE)
 
 		If (source = API_KEYBOARD) Then 
@@ -33,10 +33,10 @@ End Function
 
 //Korvaa KeyDown()
 Function API_KeyDown(number, Key)
-	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
+	If (number >= 0 And number < MAIN_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
-		player = API_Player(number) 
-		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		player = MAIN_Player(number) 
+		ctrl = PeekInt(player,MAIN_PLAYER_CONTROLS)
 		source = PeekByte(ctrl,API_CONTROL_SOURCE)
 
 		If (source = API_KEYBOARD) Then 
@@ -49,10 +49,10 @@ End Function
 
 //Korvaa KeyUp()
 Function API_KeyUp(number, Key)
-	If (number >= 0 And number < API_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
+	If (number >= 0 And number < MAIN_MAX_PLAYERS And Key >=0 And Key < API_ACTIONS) Then 
 
-		player = API_Player(number) 
-		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		player = MAIN_Player(number) 
+		ctrl = PeekInt(player,MAIN_PLAYER_CONTROLS)
 		source = PeekByte(ctrl,API_CONTROL_SOURCE)
 
 		If (source = API_KEYBOARD) Then 

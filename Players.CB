@@ -1,161 +1,139 @@
+//Pelaajien hallinta
 
-//pelaajan muistipalan offsettej‰
-
-//pelaajan nimi
-Const API_PLAYER_NAME = 0
-
-//pelaajan v‰ri
-Const API_PLAYER_COLOR = 4
-
-//pelaajan v‰ri
-Const API_PLAYER_CONTROLS = 8
-
-//pelaajan data
-Const API_PLAYER_DYNAMIC = 12
+//Pelaajan muistipalan offsettej‰
+Const MAIN_PLAYER_NAME = 0      //Viittaa merkkijonoon, joka sis‰lt‰‰ pelaajan nimen
+Const MAIN_PLAYER_COLOR = 4     //Viittaa muistipalaan, joka sis‰lt‰‰ pelaajan v‰rin
+Const MAIN_PLAYER_CONTROLS = 8  //Viittaa muistipalaan, joka sis‰lt‰‰ pelaajan n‰pp‰imet
+Const MAIN_PLAYER_DYNAMIC = 12  //Viittaa muistipalaan, joka on tarkoitettu minipelikohtaista tiedontallennusta varten
+Const MAIN_PLAYER_POINTS = 0   //Sis‰lt‰‰ pelaajan pisteet (Int)
 
 //Pelaajan muistipalan koko
-Const API_PLAYER_STATIC_SIZE = 16
+Const MAIN_PLAYER_STATIC_SIZE = 16
 
-Const API_PLAYER_DYN_POINTS = 0
+//Pelaajien maksimim‰‰r‰ 8, tietokoneelle harvoin pystyy sen enemp‰‰ pelaamaan (loppuu n‰pp‰imet ja kapulat :D )
+Const MAIN_MAX_PLAYERS = 8
 
-Const API_MAX_PLAYERS = 4
+//Sis‰lt‰‰ viittaukset pelaajien muistipaloihin
+Dim MAIN_Player(MAIN_MAX_PLAYERS) As integer 
 
-Dim API_Player(API_MAX_PLAYERS) As integer 
+//Sis‰lt‰‰ todellisen tiedon pelaajien m‰‰r‰st‰ (minipelille saatetaan ilmoittaa eri m‰‰r‰)
+Global MAIN_PlayerAmount
+MAIN_PlayerAmount = 0
 
-Global API_PlayerAmount 
-API_PlayerAmount = 0
 
-Type API_PlayerString
+Type MAIN_PlayerString
     Field id
 	Field txt$
 EndType
 
-//Lis‰‰ pelaajan ja v‰rin
-Function API_AddPlayer(name$, r=-1,g=-1,b=-1)
 
+//Lis‰‰ pelaajan ja v‰rin, palauttaa pelaajan numeron
+Function MAIN_AddPlayer(name$, r = -1, g = -1, b = -1)
 	number = -1
-
-	For i=0 To API_MAX_PLAYERS-1
 	
-		If( API_Player(i) = 0) Then number = i : Exit 
-	
+	//Luodaan pelaaja seuraavalle vapaalle indeksille jos on olemassa (muutoin palautetaan -1)
+	For i = 0 To MAIN_MAX_PLAYERS - 1
+		If (MAIN_Player(i) = 0) Then number = i : Exit
 	Next i
 	
 	If (number <> -1) Then 
-	
-		API_PlayerAmount = API_PlayerAmount + 1
-	
-		player = MakeMEMBlock(API_PLAYER_STATIC_SIZE)
+		MAIN_PlayerAmount = MAIN_PlayerAmount + 1
 		
-		iS. API_PlayerString = New(API_PlayerString)
+		player = MakeMEMBlock(MAIN_PLAYER_STATIC_SIZE)
+		
+		iS. MAIN_PlayerString = New(MAIN_PlayerString)
 		iS\txt$ = name$
 		iS\id = ConvertToInteger(iS)  
 
 		col = MakeMEMBlock(4)
-		ctrl = MakeMEMBlock(API_ACTIONS+1)
+		ctrl = MakeMEMBlock(API_ACTIONS + 1)
 		
-		PokeInt player,API_PLAYER_NAME,iS\id
-		PokeInt player,API_PLAYER_COLOR,col
-		PokeInt player,API_PLAYER_CONTROLS,ctrl
-		PokeInt player,API_PLAYER_DYNAMIC,MakeMEMBlock(128)
+		PokeInt player, MAIN_PLAYER_NAME, iS\id
+		PokeInt player, MAIN_PLAYER_COLOR, col
+		PokeInt player, MAIN_PLAYER_CONTROLS, ctrl
+		PokeInt player, MAIN_PLAYER_DYNAMIC, MakeMEMBlock(128)
 		
-		API_Player(number) = player
+		MAIN_Player(number) = player
 
 		API_SetPlayerColor(number,r,g,b)
-
 	EndIf 
 	
+	Return number
 EndFunction 
 
 // Asettaa ja palauttaa pelaajan pisteet
-Function API_PlayerPoints(number,points=-1)
-
-	If (number >= 0 And number < API_MAX_PLAYERS) Then
+Function API_PlayerPoints(number, points = -1)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
 	
-		player = API_Player(number)
+		player = MAIN_Player(number)
 		
-		dynamic = PeekInt(player,API_PLAYER_DYNAMIC)
+		dynamic = PeekInt(player, MAIN_PLAYER_DYNAMIC)
 		
-		If ( points >= 0) Then 
-			PokeInt dynamic,API_PLAYER_DYN_POINTS,points
+		If (points >= 0) Then 
+			PokeInt dynamic, MAIN_PLAYER_POINTS, points
 			Return points  
 		Else 
-			Return peekint(dynamic,API_PLAYER_DYN_POINTS)
+			Return peekint(dynamic, MAIN_PLAYER_POINTS)
 		EndIf 
 
 	EndIf 
 	
 	Return 0
-
 EndFunction 
 
-Function API_SetPlayerColor(number,r=-1,g=-1,b=-1)
-
-	If (number >= 0 And number < API_MAX_PLAYERS) Then
-	
-		player = API_Player(number)
+Function API_SetPlayerColor(number, r = -1, g = -1, b = -1)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+		player = MAIN_Player(number)
 		
-		col = peekint(player,API_PLAYER_COLOR)
+		col = PeekInt(player, MAIN_PLAYER_COLOR)
 	
 		If (r < 0 Or g < 0 Or b < 0 Or r > 255 Or g > 255 Or b > 255) Then 
-		
-			c = Rand(1,6)
+			c = Rand(1, 6)
 			c = c Shl 29
-			PokeByte col,RED, 127+127*(c Shr 31) 
+			PokeByte col, RED, 127 + 127 * (c Shr 31) 
 			
 			c = c Shl 1
-			PokeByte col,GREEN, 127+127*(c Shr 31) 
+			PokeByte col, GREEN, 127 + 127 * (c Shr 31) 
 			
-			c = c Shl 1 
-			PokeByte col,BLUE, 127+127*(c Shr 31) 
-		
+			c = c Shl 1
+			PokeByte col, BLUE, 127 + 127 * (c Shr 31) 
 		Else 
-		
-			PokeByte col,RED,r
-			PokeByte col,GREEN,g
-			PokeByte col,BLUE,b
-
+			PokeByte col, RED, r
+			PokeByte col, GREEN, g
+			PokeByte col, BLUE, b
 		EndIf   
-	
 	EndIf 
-	
 EndFunction 
 
 //Kopioi staatisen ja/tai dynaamisen muistipalan
 //pelaajalle jos annettu pala on erisuuri kuin nolla
-Function MAIN_SetPlayerData(number, static=0, dynamic=0)
-
-	If (number >= 0 And number < API_MAX_PLAYERS) Then
-
-		player = API_Player(number) 
+Function MAIN_SetPlayerData(number, static = 0, dynamic = 0)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+		player = MAIN_Player(number) 
 		
-		If (static <> 0 And MEMBlockSize(static) = API_PLAYER_STATIC_SIZE) Then 
-			MemCopy static,0,player,0,API_PLAYER_STATIC_SIZE
+		If (static <> 0 And MEMBlockSize(static) = MAIN_PLAYER_STATIC_SIZE) Then 
+			MemCopy static, 0, player, 0, MAIN_PLAYER_STATIC_SIZE
 		EndIf 
 		
-		p_dynamic = PeekInt(player,API_PLAYER_DYNAMIC)
+		p_dynamic = PeekInt(player, MAIN_PLAYER_DYNAMIC)
 		
-		If (dynamic <> 0 ) Then
+		If (dynamic <> 0) Then
 			size = MEMBlockSize(dynamic)
-			ResizeMEMBlock p_dynamic,size
-			MemCopy dynamic,0,p_dynamic,0,size
-			PokeInt player,API_PLAYER_DYNAMIC,p_dynamic
+			ResizeMEMBlock p_dynamic, size
+			MemCopy dynamic, 0, p_dynamic, 0, size
+			PokeInt player, MAIN_PLAYER_DYNAMIC, p_dynamic
 		EndIf 
-	
 	EndIf 
-
 EndFunction 
 
 //Lataa defaulttiasetukset 
 //TODO: mahdollista n‰pp‰inten lataus tiedostosta, 
 //mieluiten Gamesettinginsin kautta
 Function MAIN_LoadKeys()
-
-	If ( API_Player(0) <> 0) Then
-	
-		player = API_Player(0)
+	If (MAIN_Player(0) <> 0) Then
+		player = MAIN_Player(0)
 		
-		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		ctrl = PeekInt(player, MAIN_PLAYER_CONTROLS)
 		
 		PokeByte ctrl, API_UP, 		200 //Ylˆs nuoli
 		PokeByte ctrl, API_DOWN, 	208 //Alas nuoli
@@ -166,11 +144,10 @@ Function MAIN_LoadKeys()
 		PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
 	EndIf 
 		
-	If ( API_Player(1) <> 0) Then
-	
-		player = API_Player(1)
+	If (MAIN_Player(1) <> 0) Then
+		player = MAIN_Player(1)
 		
-		ctrl = PeekInt(player,API_PLAYER_CONTROLS)
+		ctrl = PeekInt(player, MAIN_PLAYER_CONTROLS)
 		
 		PokeByte ctrl, API_UP, 		17 //W
 		PokeByte ctrl, API_DOWN,	31 //S
@@ -179,8 +156,5 @@ Function MAIN_LoadKeys()
 		PokeByte ctrl, API_ACTION1, 42 //Vasen shift
 		PokeByte ctrl, API_ACTION2, 86 //<>
 		PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
-	
 	EndIf 
-
-
 End Function
