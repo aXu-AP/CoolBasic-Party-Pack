@@ -97,8 +97,9 @@ EndFunction
 //näyttää kokoelman pelit ja käynnistää ne niiden logoa klikkaamalla
 Function MAIN_SelectGame()
 	GameData = API_MakeGameData()
-	API_PutData(GameData, API_PlayerCount, MAIN_PlayerAmount)
-	API_PutData(GameData, API_PlayerSetup, "ALLvsALL")
+	API_PlayerCount(GameData, MAIN_PlayerAmount)
+	API_PlayerSetup(GameData, "ALLvsALL")
+	API_Difficulty(GameData, 2)
 	
 	marginBig = 20
 	marginSmall = 2
@@ -164,13 +165,14 @@ EndFunction
 
 //Aloittaa pelin
 Function MAIN_Start(ID$, GameData)
+	MAIN_GameData = GameData
 	API_ResetToDefaults()
 	MAIN_RunningGameID = ID$
 	Select ID
 		Case "AX00"
-			AX00_Game(GameData)
+			AX00_Game()
 		Case "ME00"
-			ME00_Game(GameData)
+			ME00_Game()
 		Default
 			MakeError "Peliä " + Name + " ei löytynyt!"
 	EndSelect
@@ -180,57 +182,65 @@ Function MAIN_Start(ID$, GameData)
 EndFunction
 
 
-//GameData-palikkaan tallennettavat tiedot (huom. jos muutat, muuta myös GetData ja WriteData funktioiden select-caseja)
-Const API_PlayerCount = 0
-Const API_PlayerSetup = 1
+
+//GameData-palikkaan offsettejä
+Const MAIN_GD_PLAYERCOUNT = 0
+Const MAIN_GD_PLAYERSETUP = 4
+Const MAIN_GD_DIFFICULTY = 8
 //Sisältää GameData-palikan koon
-Const API_BlockSize = 2
+Const MAIN_GD_BLOCKSIZE = 12
+
+Global MAIN_GameData
 
 //Luo GameData-muistipalan
 Function API_MakeGameData()
-	Return MakeMEMBlock(API_BlockSize * 4)
+	Return MakeMEMBlock(MAIN_GD_BLOCKSIZE)
 EndFunction
 
 
-//Palauttaa tiedon muistipalasta
-Function API_GetData(GameData, DataToGet)
-	If (DataToGet >= API_BlockSize) Then Return -1
+//Asettaa tai palauttaa pelaajien määrän
+Function API_PlayerCount(GameData = 0, playerCount = -1)
+	If GameData = 0 Then GameData = MAIN_GameData
 	
-	Value = PeekInt(GameData, DataToGet * 4)
-	Select DataToGet
-		Case 1  //API_PlayerSetup
-			Select Value
-				Case 0
-					Return "ALLvsALL"
-				Case 1
-					Return "1vsALL"
-				Case 2
-					Return "TEAMvs"
-				Default
-					Return ""
-			EndSelect
-		Default
-			Return Value
-	EndSelect
+	If playerCount = -1 Then
+		Return PeekInt(GameData, MAIN_GD_PLAYERCOUNT)
+	Else
+		PokeInt GameData, MAIN_GD_PLAYERCOUNT, playerCount
+	EndIf
 EndFunction
 
 
-//Kirjoittaa tiedon muistipalaan (Value on merkkijono, mutta voi sisältää myös numeron)
-Function API_PutData(GameData, DataToWrite, Value$)
-	If (DataToWrite >= API_BlockSize) Then Return -1
+//Asettaa tai palauttaa pelaajakokoonpanon
+Function API_PlayerSetup(GameData = 0, playerSetup$ = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!")
+	If GameData = 0 Then GameData = MAIN_GameData
 	
-	Select DataToWrite
-		Case 1  //API_PlayerSetup
-			Select Value
-				Case "ALLvsALL"
-					Value = 0
-				Case "1vsALL"
-					Value = 1
-				Case "TEAMvs"
-					Value = 2
-				Default
-					Value = -1
-			EndSelect
-	EndSelect
-	PokeInt GameData, DataToWrite * 4, Int(Value)
+	//Tehdään uusi merkkijono, jos ei ole olemassa
+	address = PeekInt(GameData, MAIN_GD_PLAYERSETUP)
+	If address = 0 Then
+		iS.MAIN_CommonString = New(MAIN_CommonString)
+		id = ConvertToInteger(iS)
+		
+		PokeInt GameData, MAIN_GD_PLAYERSETUP, id
+	Else
+		iS = ConvertToType(address)
+	EndIf
+	
+	If playerSetup = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!" Then
+		Return iS\txt
+	Else
+		iS\txt = playerSetup
+	EndIf
 EndFunction
+
+
+//Asettaa tai palauttaa vaikeustason
+Function API_Difficulty(GameData = 0, difficulty = -1)
+	If GameData = 0 Then GameData = MAIN_GameData
+	
+	If difficulty = -1 Then
+		Return PeekInt(GameData, MAIN_GD_DIFFICULTY)
+	Else
+		PokeInt GameData, MAIN_GD_DIFFICULTY, difficulty
+	EndIf
+EndFunction
+

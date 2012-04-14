@@ -19,10 +19,10 @@ Type ME00_Rock
 	Field mineral As integer
 EndType
 
-Function ME00_Game(GameData)
+Function ME00_Game()
 
 	
-	PlayerCount = API_GetData(GameData, API_PlayerCount)
+	PlayerCount = API_PlayerCount()
 	
 	//luodaan pelaajille alukset
 	For i=0 To PlayerCount-1

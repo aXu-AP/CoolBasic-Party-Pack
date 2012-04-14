@@ -4,8 +4,8 @@ API_AddGame("AX00")
 Const AX00_Ukko = 0
 Const AX00_Teksti = 1
 
-Function AX00_Game(GameData)
-	PlayerCount = API_GetData(GameData, API_PlayerCount)
+Function AX00_Game()
+	PlayerCount = API_PlayerCount()
 	
 	Ukkokuva = API_LoadImage("Naama.png")
 	Maski = API_LoadImage("Naama2.png")
