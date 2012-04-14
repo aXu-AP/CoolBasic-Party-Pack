@@ -9,11 +9,12 @@
 
 
 //Vakiot mediatyyppien erottamiseksi
-Const MAIN_Object = 0
-Const MAIN_AnimObject = 1
-Const MAIN_Image = 2
-Const MAIN_AnimImage = 3
-Const MAIN_Audio = 4
+Const MAIN_Object      = 0
+Const MAIN_AnimObject  = 1
+Const MAIN_Image       = 2
+Const MAIN_AnimImage   = 3
+Const MAIN_Audio       = 4
+Const MAIN_Font        = 5
 
 Global MAIN_MAP
 
