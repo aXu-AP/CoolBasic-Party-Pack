@@ -134,13 +134,13 @@ Function API_Recolor(number, img, overlayImg = 0)
 						//pikselista RGB
 						pixel = GetPixel2 (x,y,Image(img))
 						
-						pixel = pixel Shl 8
+						pixel = pixel * 256
 						r = pixel Shr 24
 						
-						pixel = pixel Shl 8
+						pixel = pixel * 256
 						g = pixel Shr 24
 						
-						pixel = pixel Shl 8
+						pixel = pixel * 256
 						b = pixel Shr 24 
 						
 						// kerrotaan kukin pikseliarvo suhteellisella voimakkuudella
@@ -149,7 +149,7 @@ Function API_Recolor(number, img, overlayImg = 0)
 						b = Float(b) * blueAmount# 
 						
 						//RGB:stä pikseli
-						pixel = b + (g Shl 8) + (r Shl 16) + (255 Shl 24)
+						pixel = b + (g * 256) + (r * 65536) - 16777216
 						
 						PutPixel2 x,y,pixel,Image(img)
 						
