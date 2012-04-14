@@ -21,8 +21,7 @@ Global MAIN_PlayerAmount
 MAIN_PlayerAmount = 0
 
 
-Type MAIN_PlayerString
-    Field id
+Type MAIN_CommonString
 	Field txt$
 EndType
 
@@ -41,14 +40,14 @@ Function MAIN_AddPlayer(name$, r = -1, g = -1, b = -1)
 		
 		player = MakeMEMBlock(MAIN_PLAYER_STATIC_SIZE)
 		
-		iS. MAIN_PlayerString = New(MAIN_PlayerString)
+		iS. MAIN_CommonString = New(MAIN_CommonString)
 		iS\txt$ = name$
-		iS\id = ConvertToInteger(iS)  
+		id = ConvertToInteger(iS)  
 
 		col = MakeMEMBlock(4)
 		ctrl = MakeMEMBlock(API_ACTIONS + 1)
 		
-		PokeInt player, MAIN_PLAYER_NAME, iS\id
+		PokeInt player, MAIN_PLAYER_NAME, id
 		PokeInt player, MAIN_PLAYER_COLOR, col
 		PokeInt player, MAIN_PLAYER_CONTROLS, ctrl
 		PokeInt player, MAIN_PLAYER_POINTS, 0
@@ -159,10 +158,10 @@ Function API_PlayerString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄY
 	//Tehdään uusi merkkijono, jos ei ole olemassa
 	address = PeekInt(dynamic, dataField)
 	If address = 0 Then
-		iS.MAIN_PlayerString = New(MAIN_PlayerString)
-		iS\id = ConvertToInteger(iS)
+		iS.MAIN_CommonString = New(MAIN_CommonString)
+		id = ConvertToInteger(iS)
 		
-		PokeInt dynamic, dataField, iS\id
+		PokeInt dynamic, dataField, id
 	Else
 		iS = ConvertToType(address)
 	EndIf
