@@ -55,6 +55,7 @@ Function API_AddGame(ID$)
 	
 	nG\SupportAI = (Upper(Str(MAIN_GetSetting("SupportAI"))) = "YES")
 	nG\SupportHandicap = (Upper(Str(MAIN_GetSetting("SupportHandicap"))) = "YES")
+	nG\Difficulty = Int(MAIN_GetSetting("Difficulty"))
 	
 	//Tarkistetaan, ettei samannimistä peliä ole vielä lisätty
 	For iG.MAIN_Game = Each MAIN_Game
@@ -77,7 +78,7 @@ Function API_AddGame(ID$)
 	
 	If nG\SupportAI <> 1 Then nG\SupportAI = False
 	If nG\SupportHandicap <> 1 Then nG\SupportHandicap = False
-	If nG\Difficulty < 0 Then nG\Difficulty = 0
+	If nG\Difficulty < 0 Then nG\Difficulty = 2
 	
 	nG\Logo = LoadImage("Games/" + ID + "/logo.png")
 	
