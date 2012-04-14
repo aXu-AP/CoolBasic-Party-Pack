@@ -235,26 +235,23 @@ Function MAIN_CopyPlayerData(number, static = 0, dynamic = 0)
 	EndIf 
 EndFunction 
 
-//Lataa defaulttiasetukset 
-//TODO: mahdollista näppäinten lataus tiedostosta, 
-//mieluiten Gamesettinginsin kautta
+//Lataa näppäinasetukset
 Function MAIN_LoadKeys()
-
-MAIN_ParseSettings("GlobalMedia/keyconfig.ini")
-
-For i = 1 To MAIN_PlayerAmount
-	If (MAIN_PlayerData(i-1) <> 0) Then
-		player = MAIN_PlayerData(i-1)
-		
-		ctrl = PeekInt(player, MAIN_PLAYER_CONTROLS)
-		
-		PokeByte ctrl, API_UP, MAIN_GetSetting("PLAYER"+i+"_UP")
-		PokeByte ctrl, API_DOWN, MAIN_GetSetting("PLAYER"+i+"_DOWN")
-		PokeByte ctrl, API_LEFT, MAIN_GetSetting("PLAYER"+i+"_LEFT")
-		PokeByte ctrl, API_RIGHT, MAIN_GetSetting("PLAYER"+i+"_RIGHT")
-		PokeByte ctrl, API_ACTION1, MAIN_GetSetting("PLAYER"+i+"_ACTION1")
-		PokeByte ctrl, API_ACTION2, MAIN_GetSetting("PLAYER"+i+"_ACTION2")
-		PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
-	EndIf 
-Next i
+	MAIN_ParseSettings("Saved Data/keyconfig.ini")
+	
+	For i = 1 To MAIN_PlayerAmount
+		If (MAIN_PlayerData(i-1) <> 0) Then
+			player = MAIN_PlayerData(i-1)
+			
+			ctrl = PeekInt(player, MAIN_PLAYER_CONTROLS)
+			
+			PokeByte ctrl, API_UP, MAIN_GetSetting("PLAYER"+i+"_UP")
+			PokeByte ctrl, API_DOWN, MAIN_GetSetting("PLAYER"+i+"_DOWN")
+			PokeByte ctrl, API_LEFT, MAIN_GetSetting("PLAYER"+i+"_LEFT")
+			PokeByte ctrl, API_RIGHT, MAIN_GetSetting("PLAYER"+i+"_RIGHT")
+			PokeByte ctrl, API_ACTION1, MAIN_GetSetting("PLAYER"+i+"_ACTION1")
+			PokeByte ctrl, API_ACTION2, MAIN_GetSetting("PLAYER"+i+"_ACTION2")
+			PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
+		EndIf 
+	Next i
 End Function
