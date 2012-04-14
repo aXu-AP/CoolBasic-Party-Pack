@@ -64,6 +64,40 @@ Function MAIN_AddPlayer(name$, r = -1, g = -1, b = -1)
 EndFunction 
 
 
+// Asettaa ja palauttaa pelaajan tekoälyarvon
+Function API_PlayerNPC(number, npc = -1)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+		player = MAIN_PlayerData(number)
+		
+		If (npc >= 0) Then 
+			PokeInt player, MAIN_PLAYER_NPC, npc
+			Return npc
+		Else 
+			Return PeekInt(player, MAIN_PLAYER_NPC)
+		EndIf 
+	EndIf 
+	
+	Return 0
+EndFunction
+
+
+// Asettaa ja palauttaa pelaajan joukkuenumeron
+Function API_PlayerTeam(number, team = -1)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+		player = MAIN_PlayerData(number)
+		
+		If (team >= 0) Then 
+			PokeInt player, MAIN_PLAYER_NPC, team
+			Return team
+		Else 
+			Return PeekInt(player, MAIN_PLAYER_NPC)
+		EndIf 
+	EndIf 
+	
+	Return 0
+EndFunction
+
+
 // Asettaa ja palauttaa pelaajan pisteet
 Function API_PlayerPoints(number, points = -1)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then

@@ -120,7 +120,7 @@ Function MAIN_SelectGame()
 		
 		For iG.MAIN_Game = Each MAIN_Game
 
-			If (MAIN_PlayerAmount < iG\MaxPlayers) Then 
+			If (MAIN_GameCompatible(ConvertToInteger(iG), GameData)) Then 
 			
 				y = marginBig + rowHeight + gameCount * (100 + marginBig/2)
 	
@@ -181,6 +181,25 @@ Function MAIN_Start(ID$, GameData)
 	API_ResetToDefaults()
 EndFunction
 
+
+//Tarkastaa, voidaanko peliä pelata annetuilla asetuksilla
+Function MAIN_GameCompatible(Game, GameData)
+	iG.MAIN_Game = ConvertToType(Game)
+	
+	If iG\MinPlayers > API_PlayerCount(GameData) Then Return False
+	If iG\MaxPlayers < API_PlayerCount(GameData) Then Return False
+	
+	If Not InStr(Upper(Str(API_PlayerSetup(GameData))), Upper(iG\PlayerSetup)) Then Return False
+	If iG\Difficulty <> 0 And iG\Difficulty <> API_Difficulty(GameData) Then Return False
+	
+	If Not iG\SupportAI Then
+		For i = 0 To API_PlayerCount(GameData) - 1
+			If API_PlayerNPC(i) > 0 Then Return False
+		Next i
+	EndIf
+	
+	Return True
+EndFunction
 
 
 //GameData-palikkaan offsettejä
