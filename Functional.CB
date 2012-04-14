@@ -172,3 +172,22 @@ Function API_Recolor(number, img, overlayImg = 0)
 	Return img
 EndFunction 
 
+
+//Asettaa kaikki cb:n arvot oletuksiin
+Function API_ResetToDefaults()
+	PositionCamera 0, 0
+	DrawToWorld OFF, OFF, OFF
+	DrawToScreen
+	
+	DefaultVisible ON
+	
+	ClearKeys
+	ClearMouse
+	CloseInput
+	
+	Color 255, 255, 255
+	ClsColor 0, 0, 0
+	
+	Smooth2D OFF
+EndFunction
+

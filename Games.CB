@@ -136,6 +136,7 @@ EndFunction
 
 //Aloittaa pelin
 Function MAIN_Start(ID$, GameData)
+	API_ResetToDefaults()
 	MAIN_RunningGameID = ID$
 	Select ID
 		Case "AX00"
@@ -147,6 +148,7 @@ Function MAIN_Start(ID$, GameData)
 	EndSelect
 	MAIN_ClearMedia("*CLONE")
 	MAIN_RunningGameID = ""
+	API_ResetToDefaults()
 EndFunction
 
 
