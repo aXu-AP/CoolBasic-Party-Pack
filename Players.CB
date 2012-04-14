@@ -1,14 +1,16 @@
 //Pelaajien hallinta
 
 //Pelaajan muistipalan offsettej‰
-Const MAIN_PLAYER_NAME = 0      //Viittaa merkkijonoon, joka sis‰lt‰‰ pelaajan nimen
-Const MAIN_PLAYER_COLOR = 4     //Viittaa muistipalaan, joka sis‰lt‰‰ pelaajan v‰rin
-Const MAIN_PLAYER_CONTROLS = 8  //Viittaa muistipalaan, joka sis‰lt‰‰ pelaajan n‰pp‰imet
-Const MAIN_PLAYER_POINTS = 12   //Sis‰lt‰‰ pelaajan pisteet (Int)
-Const MAIN_PLAYER_DYNAMIC = 16  //Viittaa muistipalaan, joka on tarkoitettu minipelikohtaista tiedontallennusta varten
+Const MAIN_PLAYER_NAME        = 0     //Viittaa merkkijonoon, joka sis‰lt‰‰ pelaajan nimen
+Const MAIN_PLAYER_COLOR       = 4     //Viittaa muistipalaan, joka sis‰lt‰‰ pelaajan v‰rin
+Const MAIN_PLAYER_CONTROLS    = 8     //Viittaa muistipalaan, joka sis‰lt‰‰ pelaajan n‰pp‰imet
+Const MAIN_PLAYER_TEAM        = 12    //Sis‰lt‰‰ pelaajan joukkueen numeron
+Const MAIN_PLAYER_NPC         = 16    //Onko ihmispelaaja (0) vai teko‰ly (taitavuus 1, 2 tai 3)
+Const MAIN_PLAYER_POINTS      = 20    //Sis‰lt‰‰ pelaajan pisteet (Int)
+Const MAIN_PLAYER_DYNAMIC     = 24    //Viittaa muistipalaan, joka on tarkoitettu minipelikohtaista tiedontallennusta varten
 
 //Pelaajan muistipalan koko
-Const MAIN_PLAYER_STATIC_SIZE = 20
+Const MAIN_PLAYER_STATIC_SIZE = 28
 
 //Pelaajien maksimim‰‰r‰ 8, tietokoneelle harvoin pystyy sen enemp‰‰ pelaamaan (loppuu n‰pp‰imet ja kapulat :D )
 Const MAIN_MAX_PLAYERS = 8

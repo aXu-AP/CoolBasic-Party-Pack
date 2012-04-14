@@ -9,8 +9,6 @@ Function MAIN_Resolution(w, h)
 	API_RenderH = h
 	
 	MAIN_RenderZoom = Min(RoundDown(Float(MAIN_ScreenW) / API_RenderW), RoundDown(Float(MAIN_ScreenH) / API_RenderH))
-	Print "W: " + Float(MAIN_ScreenW) / API_RenderW
-	Print "H: " + Float(MAIN_ScreenH) / API_RenderH
 	
 	If MAIN_ScreenW <> API_RenderW Or MAIN_ScreenH <> API_RenderH Then
 		If MAIN_MidImage Then DeleteImage MAIN_MidImage

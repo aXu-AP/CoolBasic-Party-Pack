@@ -11,18 +11,27 @@ Include "Games/ME00/SpaceMiners.CB"
 
 //T‰m‰ tyyppikokoelma pit‰‰ listaa kaikista peleist‰ ja niiden tiedoista
 Type MAIN_Game
-	Field ID$
-	Field Name$
-	Field Desc$
-	Field Controls$
-	Field PlayerSetup$
-	Field MaxPlayers
+	Field ID$                //Pelin ID (sama kuin prefiksi ja kansio)
+	Field Name$              //Pelin nimi
+	Field Desc$              //Pelin seloste (tavoite)
+	Field Controls$          //Pelin kontrolliohjeet
+	
+	Field PlayerSetup$       //ALLvsALL, 1vsALL tai TEAMvs, useat arvot erotetaan pilkulla
+	Field MinPlayers         //Pelin tukema minimipelaajam‰‰r‰
+	Field MaxPlayers         //Pelin tukema maksimipelaajam‰‰r‰
+	
+	Field SupportAI          //Voiko peli pelata tietokonevastustajilla? (YES/NO, oletus NO)
+	Field SupportHandicap    //Tukeeko peli helpotuksia? (YES/NO, oletus NO)
+	Field Difficulty         //Pelin vaikeustaso (1, 2 tai 3), 0 jos tukee useita
+	
 	Field Logo
 EndType
 
 
 //Lis‰‰ pelin pelikokoelmaan. Lis‰tiedot luetaan gamedata.ini tiedostosta
 Function API_AddGame(ID$)
+	If ID = "" Then MakeError "Pelill‰ ei ole tunnistetta!"
+	
 	//Tarkistetaan, ettei peli‰ ole viel‰ lis‰tty
 	For iG.MAIN_Game = Each MAIN_Game
 		If iG\ID = ID Then MakeError "Pelikokoelmassa on samalla tunnisteella pelej‰: " + ID + "!"
@@ -35,30 +44,40 @@ Function API_AddGame(ID$)
 	//Lis‰t‰‰n tiedot pelikokoelmaan
 	nG.MAIN_Game = New(MAIN_Game)
 	nG\ID = ID
+	
 	nG\Name = MAIN_GetSetting("Name")
 	nG\Desc = MAIN_GetSetting("Desc")
 	nG\Controls = MAIN_GetSetting("Controls")
+	
 	nG\PlayerSetup = Upper(Str(MAIN_GetSetting("PlayerSetup")))
+	nG\MinPlayers = Int(MAIN_GetSetting("MinPlayers"))
 	nG\MaxPlayers = Int(MAIN_GetSetting("MaxPlayers"))
+	
+	nG\SupportAI = (Upper(Str(MAIN_GetSetting("SupportAI"))) = "YES")
+	nG\SupportHandicap = (Upper(Str(MAIN_GetSetting("SupportHandicap"))) = "YES")
 	
 	//Tarkistetaan, ettei samannimist‰ peli‰ ole viel‰ lis‰tty
 	For iG.MAIN_Game = Each MAIN_Game
 		If iG <> nG And iG\Name = nG\Name Then MakeError "Pelikokoelmassa on samannimisi‰ pelej‰: " + Name + "! (" + nG\ID + " ja " + iG\ID + ")"
 	Next iG
 	
-	//Tutkitaan puuttuvat tiedot ja aiheutetaan virheilmoitus, jos puuttuu pakollisia tietoja
-	If ID = "" Then MakeError "Pelill‰ ei ole nime‰!"
+	//Tutkitaan puuttuvat tiedot ja aiheutetaan virheilmoitus, jos puuttuu pakollisia tietoja/ep‰kelpoja arvoja
 	err$ = "Minipelin " + ID + " tietoja puuttuu: "
-	If nG\Name = "" Then err = err + "nimi, "
+	If Len(nG\Name) <= 1 Then err = err + "nimi, "
 	If nG\Desc = "" Then err = err + "selite, "
 	If nG\Controls = "" Then err = err + "n‰pp‰inselite, "
-	If nG\PlayerSetup = "" Then err = err + "pelaajien kokoonpano, "
+	If Not(InStr(nG\PlayerSetup, "ALLVSALL") Or InStr(nG\PlayerSetup, "1VSALL") Or InStr(nG\PlayerSetup, "TEAMVS")) Then err = err + "pelaajien kokoonpano, "
 	If Not FileExists("Games/" + ID + "/logo.png") Then err = err + "logo.png, "
 	
 	If err <> "Minipelin " + ID + " tietoja puuttuu: " Then MakeError Left(err, Len(err) - 2) + "!"
 	
-	//Lis‰t‰‰n oletustiedot, jos puuttuu vapaaehtoisia tietoja
-	If nG\MaxPlayers = 0 Then nG\MaxPlayers = 4
+	//Lis‰t‰‰n oletustiedot, jos puuttuu vapaaehtoisia tietoja tai tiedot ep‰kelpoja
+	If nG\MaxPlayers < 1 Or nG\MaxPlayers > MAIN_MAX_PLAYERS Then nG\MaxPlayers = MAIN_MAX_PLAYERS
+	nG\MinPlayers = Min(nG\MaxPlayers, Max(1, nG\MinPlayers))
+	
+	If nG\SupportAI <> 1 Then nG\SupportAI = False
+	If nG\SupportHandicap <> 1 Then nG\SupportHandicap = False
+	If nG\Difficulty < 0 Then nG\Difficulty = 0
 	
 	nG\Logo = LoadImage("Games/" + ID + "/logo.png")
 	
@@ -108,6 +127,15 @@ Function MAIN_SelectGame()
 				If( API_MouseInBox(marginBig-marginSmall,y-marginSmall,API_RenderW-marginBig*2,logoSize+marginSmall*2)) Then
 					If( MouseHit(1)) Then MAIN_Start(iG\ID, GameData)
 					Box marginBig-marginSmall,y-marginSmall,API_RenderW-marginBig*2,logoSize+marginSmall*2,0
+					
+					info$ = "Lis‰tiedot: "
+					If iG\SupportAI Then info = info + "tietokonevastustajat, "
+					If iG\SupportHandicap Then info = info + "tasoitus, "
+					If iG\Difficulty = 0 Then info = info + "vaikeustason valinta."
+					If iG\Difficulty = 1 Then info = info + "vaikeustaso helppo."
+					If iG\Difficulty = 1 Then info = info + "vaikeustaso normaali."
+					If iG\Difficulty = 1 Then info = info + "vaikeustaso vaikea."
+					Text marginSmall, API_RenderH - marginSmall - 12, info$
 				EndIf 
 	
 				DrawImage iG\Logo ,marginBig, y
