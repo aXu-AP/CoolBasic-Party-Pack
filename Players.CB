@@ -239,31 +239,22 @@ EndFunction
 //TODO: mahdollista näppäinten lataus tiedostosta, 
 //mieluiten Gamesettinginsin kautta
 Function MAIN_LoadKeys()
-	If (MAIN_PlayerData(0) <> 0) Then
-		player = MAIN_PlayerData(0)
+
+MAIN_ParseSettings("GlobalMedia/keyconfig.ini")
+
+For i = 1 To MAIN_PlayerAmount
+	If (MAIN_PlayerData(i-1) <> 0) Then
+		player = MAIN_PlayerData(i-1)
 		
 		ctrl = PeekInt(player, MAIN_PLAYER_CONTROLS)
 		
-		PokeByte ctrl, API_UP, 		200 //Ylös nuoli
-		PokeByte ctrl, API_DOWN, 	208 //Alas nuoli
-		PokeByte ctrl, API_LEFT, 	203 //Vasen nuoli
-		PokeByte ctrl, API_RIGHT, 	205 //Oikea nuoli
-		PokeByte ctrl, API_ACTION1, 54  //Oikea shift
-		PokeByte ctrl, API_ACTION2, 221 //Oikea ctrl
+		PokeByte ctrl, API_UP, MAIN_GetSetting("PLAYER"+i+"_UP")
+		PokeByte ctrl, API_DOWN, MAIN_GetSetting("PLAYER"+i+"_DOWN")
+		PokeByte ctrl, API_LEFT, MAIN_GetSetting("PLAYER"+i+"_LEFT")
+		PokeByte ctrl, API_RIGHT, MAIN_GetSetting("PLAYER"+i+"_RIGHT")
+		PokeByte ctrl, API_ACTION1, MAIN_GetSetting("PLAYER"+i+"_ACTION1")
+		PokeByte ctrl, API_ACTION2, MAIN_GetSetting("PLAYER"+i+"_ACTION2")
 		PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
 	EndIf 
-		
-	If (MAIN_PlayerData(1) <> 0) Then
-		player = MAIN_PlayerData(1)
-		
-		ctrl = PeekInt(player, MAIN_PLAYER_CONTROLS)
-		
-		PokeByte ctrl, API_UP, 		17 //W
-		PokeByte ctrl, API_DOWN,	31 //S
-		PokeByte ctrl, API_LEFT, 	30 //A
-		PokeByte ctrl, API_RIGHT, 	32 //D
-		PokeByte ctrl, API_ACTION1, 42 //Vasen shift
-		PokeByte ctrl, API_ACTION2, 86 //<>
-		PokeByte ctrl, API_CONTROL_SOURCE, API_KEYBOARD
-	EndIf 
+Next i
 End Function
