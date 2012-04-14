@@ -79,7 +79,7 @@ Function API_PlayerPoints(number, points = -1)
 EndFunction
 
 
-//Asettaa tai palauttaa pelaajan värin
+//Asettaa tai palauttaa pelaajan värikomponentit tai pikselin
 Function API_PlayerColor(number, r = -1, g = -1, b = -1)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
 		player = MAIN_PlayerData(number)
@@ -98,7 +98,11 @@ Function API_PlayerColor(number, r = -1, g = -1, b = -1)
 			PokeByte col, BLUE, 127 + 127 * (c Shr 31) 
 		Else 
 			If g = -1 Or b = -1 And (r => 0 And r < 4)
-				Return PeekByte(col, r)
+				If r = 0 Then
+					Return PeekByte(col, BLUE) + (PeekByte(col, GREEN) * 256) + (PeekByte(col, RED) * 65536) + (255 Shl 24)
+				Else
+					Return PeekByte(col, r)
+				EndIf
 			Else
 				PokeByte col, RED, r Mod 256
 				PokeByte col, GREEN, g Mod 256
