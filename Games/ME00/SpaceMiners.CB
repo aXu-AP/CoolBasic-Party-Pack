@@ -3,39 +3,41 @@ API_AddGame("ME00")
 
 SAFEEXIT OFF 
 
-Type ME00_Ship
-	Field x As Float
-	Field y As Float
-	Field img As integer
-	Field playerID
-	Field hp As Float
-	Field coins As integer
-EndType
+Const ME00_X = 0
+Const ME00_Y = 4
+Const ME00_SHIP = 8
+Const ME00_SPEED = 12
 
 Type ME00_Rock
-	Field x As Float
-	Field y As Float
-	Field img As integer
-	Field mineral As integer
+	Field x
+	Field y
+	Field minerals
 EndType
+
+Function ME00_AddRock() 
+	
+	r.ME00_Rock = New(ME00_Rock)
+	
+	//r\x = 
+
+
+EndFunction 
 
 Function ME00_Game()
 
-	
 	PlayerCount = API_PlayerCount()
 	
 	//luodaan pelaajille alukset
 	For i=0 To PlayerCount-1
 	
-		s.ME00_Ship = New(ME00_Ship)
+		API_PlayerFloat(i, ME00_X, 0)
+		API_PlayerFloat(i, ME00_Y, i * 30)
 		
-		s\img = API_LoadImage("ship.png")
+		API_PlayerInt(i, ME00_SHIP, API_Recolor(i, API_LoadImage("ship.png")))
 		
-		s\y = API_RenderH/2.0 +i * 30
-		
-		API_Recolor(i,s\img)
-		
-		s\playerID = i
+		API_PlayerFloat(i, ME00_SPEED, 2.5)
+
+		API_PlayerPoints(i, 0)
 	
 	Next i
 	
@@ -43,38 +45,58 @@ Function ME00_Game()
 	stars = API_LoadImage("stars.png")
 	PaintObject background,stars
 	
-	TranslateCamera 0,ImageHeight(stars)/2
-
+	//MoveObject background,ImageHeight(stars)/2
 	
+	PositionCamera 0,0
+
+	DrawToWorld ON,ON,ON 
+
 	Repeat
 	
+		cx# = CameraX()
+		cy# = CameraY()
+	
+		minX#  = cx# - API_RenderW/2.1
+		maxX#  = cx# + API_RenderW/2.2
+		
+		minY#  = cy# - API_RenderH/2.1
+		maxY#  = cy# + API_RenderH/2.2
+		
 		DrawGame 
-
-		For s.ME00_Ship=Each ME00_Ship
 		
-			s\y = s\y + ( API_KeyDown(s\playerID, API_DOWN) - API_KeyDown(s\playerID, API_UP) )
-			
-			If ( API_KeyDown(s\playerID, API_RIGHT) ) Then 
-				s\x = CurveValue(API_RenderW/3.0,s\x,50.0) 
-				speed# = CurveValue(7.0,speed#,100.0) 
-			Else
-				s\x = CurveValue(API_RenderW/10.0,s\x,100.0)
-				speed# = 1.0
-			EndIf 
+		totalSpeed# = 1.5
 
-			TranslateCamera speed#,0
-
-			DrawImage s\img,s\x, s\y
-			
+		For i=0 To PlayerCount-1
 		
-		Next s
+			speed# = API_PlayerFloat(i, ME00_SPEED)
+		
+		    dy# = Float(API_KeyDown(i, API_DOWN) - API_KeyDown(i, API_UP)) * speed#
+			dx# = Float(API_KeyDown(i, API_RIGHT) - API_KeyDown(i, API_LEFT)) * speed#*1.5
+		
+			y# = API_PlayerFloat(i, ME00_Y) + dy#  
+			x# = API_PlayerFloat(i, ME00_X) + dx#
+			
+			x# = Min(Max(x#, minX#), maxX#)
+			y# = Min(Max(y#, minY#), maxY#)
+			
+			API_PlayerFloat(i, ME00_X, x#)
+			API_PlayerFloat(i, ME00_Y, y#)
+			
+			Text cx#,cy#+i*20,x#+" "+y#
+			
+			DrawImage API_PlayerInt(i, ME00_SHIP), x#, y#
+
+		Next i
+		
+		TranslateCamera totalSpeed#,0
 		
 		API_DrawScreen()
+		
 	Until EscapeKey()
 	
-	For s.ME00_Ship=Each ME00_Ship
-		Delete s
-	Next s
-
+	DrawToWorld OFF,OFF,OFF
+	PositionCamera 0,0
+	
+	SAFEEXIT ON
 
 EndFunction
