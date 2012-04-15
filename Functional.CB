@@ -234,4 +234,3 @@ Function API_ResetToDefaults()
 	
 	Smooth2D OFF
 EndFunction
-
