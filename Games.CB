@@ -55,7 +55,11 @@ Function API_AddGame(ID$)
 	
 	nG\SupportAI = (Upper(Str(MAIN_GetSetting("SupportAI"))) = "YES")
 	nG\SupportHandicap = (Upper(Str(MAIN_GetSetting("SupportHandicap"))) = "YES")
-	nG\Difficulty = Int(MAIN_GetSetting("Difficulty"))
+	If MAIN_HasSetting("Difficulty") Then
+		nG\Difficulty = Int(MAIN_GetSetting("Difficulty"))
+	Else
+		nG\Difficulty = -1
+	EndIf
 	
 	//Tarkistetaan, ettei samannimistä peliä ole vielä lisätty
 	For iG.MAIN_Game = Each MAIN_Game
@@ -135,8 +139,8 @@ Function MAIN_SelectGame()
 					If iG\SupportHandicap Then info = info + "tasoitus, "
 					If iG\Difficulty = 0 Then info = info + "vaikeustason valinta."
 					If iG\Difficulty = 1 Then info = info + "vaikeustaso helppo."
-					If iG\Difficulty = 1 Then info = info + "vaikeustaso normaali."
-					If iG\Difficulty = 1 Then info = info + "vaikeustaso vaikea."
+					If iG\Difficulty = 2 Then info = info + "vaikeustaso normaali."
+					If iG\Difficulty = 3 Then info = info + "vaikeustaso vaikea."
 					Text marginSmall, API_RenderH - marginSmall - 12, info$
 				EndIf 
 	
