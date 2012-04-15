@@ -6,7 +6,9 @@ Const MAIN_PLAYER_CONTROLS    = 4     //Viittaa muistipalaan, joka sisältää pela
 
 Const MAIN_PLAYER_COLOR       = 8     //Sisältää pelaajan tunnusvärin
 Const MAIN_PLAYER_SKIN        = 12    //Sisältää pelaajan ihonvärin
-Const MAIN_PLAYER_CUSTOMPARTS = 16    //Sisältää tiedot pelaajan osista
+Const MAIN_PLAYER_HEADGEAR    = 16    //Sisältää tiedot pelaajan osista
+Const MAIN_PLAYER_HEAD        = 17    //Sisältää tiedot pelaajan osista
+Const MAIN_PLAYER_BODY        = 18    //Sisältää tiedot pelaajan osista
 
 Const MAIN_PLAYER_TEAM        = 20    //Sisältää pelaajan joukkueen numeron
 Const MAIN_PLAYER_NPC         = 24    //Onko ihmispelaaja (0) vai tekoäly (taitavuus 1, 2 tai 3)
@@ -257,8 +259,119 @@ Function MAIN_LoadKeys()
 End Function
 
 
-//Kokoaa hahmon osista
-Function MAIN_CompileSideScrollingCharacter(number)
-	If FileExists("GlobalMedia\CharacterSideParts") Then
+//Asettaa tai palauttaa pelaajan hahmon päähineen
+Function API_PlayerHeadgear(number, partNo = -1)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+		player = MAIN_PlayerData(number) 
+		
+		If partNo < 0 Then
+			Return PeekByte(player, MAIN_PLAYER_HEADGEAR)
+		Else
+			PokeByte player, MAIN_PLAYER_HEADGEAR, partNo
+		EndIf
 	EndIf
+EndFunction
+
+
+//Asettaa tai palauttaa pelaajan hahmon pään
+Function API_PlayerHead(number, partNo = -1)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+		player = MAIN_PlayerData(number) 
+		
+		If partNo < 0 Then
+			Return PeekByte(player, MAIN_PLAYER_HEAD)
+		Else
+			PokeByte player, MAIN_PLAYER_HEAD, partNo
+		EndIf
+	EndIf
+EndFunction
+
+
+//Asettaa tai palauttaa pelaajan hahmon ruumiin
+Function API_PlayerBody(number, partNo = -1)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+		player = MAIN_PlayerData(number) 
+		
+		If partNo < 0 Then
+			Return PeekByte(player, MAIN_PLAYER_BODY)
+		Else
+			PokeByte player, MAIN_PLAYER_BODY, partNo
+		EndIf
+	EndIf
+EndFunction
+
+
+//Kokoaa hahmon osista
+Function MAIN_CompileCharacter(number, style$ = "side")
+	Headgear$ = Replace(RSet(Str(API_PlayerHeadgear(number)), 3), " ", "0")
+	Head$ = Replace(RSet(Str(API_PlayerHead(number)), 3), " ", "0")
+	Body$ = Replace(RSet(Str(API_PlayerBody(number)), 3), " ", "0")
+	dir$ = "GlobalMedia/Character" + style + "Parts/"
+	
+	//Ladataan ensin ruumiin ihonvärillä värjättävä kuva
+	If FileExists(dir + "Body_SC_" + Body + ".png") Then
+		BodySC = LoadImage(dir + "Body_SC_" + Body + ".png")
+		'API_Recolor(number, BodySC, 10)
+	EndIf
+	//Sitten tunnusvärillä
+	If FileExists(dir + "Body_PC_" + Body + ".png") Then
+		Character = LoadImage(dir + "Body_PC_" + Body + ".png")
+		
+		//Etsitään pään sijainnin merkitsevää magentaa pistettä
+		Lock Image(Character)
+			hx = -1 : hy = -1
+			For y = 0 To ImageHeight(Character) - 1
+				For x = 0 To ImageWidth(Character) - 1
+					If GetPixel2(x, y, Image(Character)) = -65281 Then hx = x : hy = y : Exit //Magenta 255, 0, 255
+				Next x
+				If hx = x Then Exit
+			Next y
+		Unlock Image(Character)
+		
+		API_Recolor(number, Character, 10, BodySC)  //Jos BodySC ei ole ladattu, niin se on nolla => jätetään huomiotta
+		
+		If BodySC <> 0 Then DeleteImage BodySC
+	Else
+		API_MakeError("Hahmon ruumista ei ole olemassa")
+	EndIf
+	
+	//Päästä todennäköisesti löytyy aina ihonvärikuva, joten ladataan ensin tunnusväreillä
+	If FileExists(dir + "Head_PC_" + Head + ".png") Then
+		HeadPC = LoadImage(dir + "Head_PC_" + Head + ".png")
+		API_Recolor(number, HeadPC, 10)
+	EndIf
+	If FileExists(dir + "Head_SC_" + Head + ".png") Then
+		HeadSC = LoadImage(dir + "Head_SC_" + Head + ".png")
+		'API_Recolor(number, HeadSC, 10, HeadPC)
+		
+		If HeadPC <> 0 Then DeleteImage HeadPC
+		
+		//Sitten liitetään koko pää ruumiiseen
+		HotSpot HeadSC
+		DrawToImage Character
+			DrawImage HeadSC, hx, hy
+		DrawToScreen
+		DeleteImage HeadSC
+	EndIf
+
+	//Päähineestä todennäköisesti löytyy aina tunnusvärikuva, joten ladataan ensin ihonvärillä
+	If FileExists(dir + "Headgear_SC_" + Headgear + ".png") Then
+		HeadgearSC = LoadImage(dir + "Headgear_SC_" + Headgear + ".png")
+		'API_Recolor(number, HeadGearPC)
+	EndIf
+	If FileExists(dir + "Headgear_PC_" + Headgear + ".png") Then
+		HeadgearPC = LoadImage(dir + "Headgear_PC_" + Headgear + ".png")
+		API_Recolor(number, HeadGearPC, 10, HeadGearSC)
+		
+		If HeadGearSC <> 0 Then DeleteImage HeadGearSC
+		
+		//Sitten liitetään koko päähine ruumiiseen
+		HotSpot HeadGearPC
+		DrawToImage Character
+			DrawImage HeadGearPC, hx, hy
+		DrawToScreen
+		DeleteImage HeadGearPC
+	EndIf
+	
+	Return Character
 EndFunction

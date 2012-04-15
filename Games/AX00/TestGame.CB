@@ -7,13 +7,13 @@ Const AX00_Teksti = 1
 Function AX00_Game()
 	PlayerCount = API_PlayerCount()
 	
-	Ukkokuva = API_LoadImage("Naama.png")
+	'Ukkokuva = API_LoadImage("Naama.png")
 	'Maski = API_LoadImage("Naama2.png")
 	
-	API_Recolor(0, Ukkokuva, 0)
+	'API_Recolor(0, Ukkokuva, 0)
 	
-	API_PlayerInt(0, AX00_Ukko, API_MakeObject(72))
-	PaintObject API_PlayerInt(0, AX00_Ukko), -Ukkokuva
+	'API_PlayerInt(0, AX00_Ukko, API_MakeObject(72))
+	'PaintObject API_PlayerInt(0, AX00_Ukko), -Ukkokuva
 	
 	For i = 0 To PlayerCount - 1
 		tmptxt$ = ""
@@ -21,21 +21,24 @@ Function AX00_Game()
 			tmptxt = tmptxt + Chr(Rand(32, 255))
 		Next a
 		API_PlayerString(i, AX00_Teksti, tmptxt$)
+		
+		API_PlayerInt(i, AX00_Ukko, MAIN_CompileCharacter(i))
 	Next i
 	
 	Repeat
 		For i = 0 To PlayerCount - 1
-			Color API_PlayerColor(i, RED), API_PlayerColor(i, GREEN), API_PlayerColor(i, BLUE)
-			Text 0, i * 15, "Pelaajanro" + i + " merkkijono: " + API_PlayerString(i, AX00_Teksti)
-			
 			//Pelaaja voittaa heti kun painaa nappia
 			If API_KeyHit(i, API_ACTION1) Then
 				API_PlayerPoints(i, 1000)
 				Return 0
 			EndIf
+			
+			Color API_PlayerColor(i, RED), API_PlayerColor(i, GREEN), API_PlayerColor(i, BLUE)
+			Text 0, i * 15, "Pelaajanro" + i + " merkkijono: " + API_PlayerString(i, AX00_Teksti)
+			
+			DrawImage API_PlayerInt(i, AX00_Ukko), 64 + i * 64, 200
 		Next i
 
-		TurnObject API_PlayerInt(0, AX00_Ukko), 2
 		API_DrawScreen()
 	Forever
 EndFunction
