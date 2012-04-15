@@ -44,9 +44,7 @@ Function ME00_Game()
 	background = API_MakeObjectFloor()
 	stars = API_LoadImage("stars.png")
 	PaintObject background,stars
-	
-	//MoveObject background,ImageHeight(stars)/2
-	
+
 	PositionCamera 0,0
 
 	DrawToWorld ON,ON,ON 
@@ -69,6 +67,11 @@ Function ME00_Game()
 		For i=0 To PlayerCount-1
 		
 			speed# = API_PlayerFloat(i, ME00_SPEED)
+			
+			If ( API_KeyHit(i,API_ACTION1)) Then 
+				API_MakeError("Ampuminen ei toimi!!1",1)
+				DrawToWorld ON,ON,ON 
+			EndIf 
 		
 		    dy# = Float(API_KeyDown(i, API_DOWN) - API_KeyDown(i, API_UP)) * speed#
 			dx# = Float(API_KeyDown(i, API_RIGHT) - API_KeyDown(i, API_LEFT)) * speed#*1.5
@@ -81,8 +84,6 @@ Function ME00_Game()
 			
 			API_PlayerFloat(i, ME00_X, x#)
 			API_PlayerFloat(i, ME00_Y, y#)
-			
-			Text cx#,cy#+i*20,x#+" "+y#
 			
 			DrawImage API_PlayerInt(i, ME00_SHIP), x#, y#
 
