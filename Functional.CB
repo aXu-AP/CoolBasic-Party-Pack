@@ -159,13 +159,11 @@ Function API_Recolor(number, img, threshold = 10, overlayImg = 0)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
 	
 		player = MAIN_PlayerData(number)
-		
-		col = PeekInt(player,MAIN_PLAYER_COLOR)
 	
 		//Pelaajan värin suhteellinen voimakkuus 0.0 - 1.0
-		redAmount#   = Float(PeekByte(col,RED))   / 255.0
-		greenAmount# = Float(PeekByte(col,GREEN)) / 255.0
-		blueAmount#  = Float(PeekByte(col,BLUE))  / 255.0
+		redAmount#   = Float(PeekByte(player, MAIN_PLAYER_COLOR + 3 - RED))   / 255.0
+		greenAmount# = Float(PeekByte(player, MAIN_PLAYER_COLOR + 3 - GREEN)) / 255.0
+		blueAmount#  = Float(PeekByte(player, MAIN_PLAYER_COLOR + 3 - BLUE))  / 255.0
 		
 		If ( img <> 0 ) Then 
 		

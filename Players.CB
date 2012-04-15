@@ -2,15 +2,20 @@
 
 //Pelaajan muistipalan offsettejä
 Const MAIN_PLAYER_NAME        = 0     //Viittaa merkkijonoon, joka sisältää pelaajan nimen
-Const MAIN_PLAYER_COLOR       = 4     //Viittaa muistipalaan, joka sisältää pelaajan värin
-Const MAIN_PLAYER_CONTROLS    = 8     //Viittaa muistipalaan, joka sisältää pelaajan näppäimet
-Const MAIN_PLAYER_TEAM        = 12    //Sisältää pelaajan joukkueen numeron
-Const MAIN_PLAYER_NPC         = 16    //Onko ihmispelaaja (0) vai tekoäly (taitavuus 1, 2 tai 3)
-Const MAIN_PLAYER_POINTS      = 20    //Sisältää pelaajan pisteet (Int)
-Const MAIN_PLAYER_DYNAMIC     = 24    //Viittaa muistipalaan, joka on tarkoitettu minipelikohtaista tiedontallennusta varten
+Const MAIN_PLAYER_CONTROLS    = 4     //Viittaa muistipalaan, joka sisältää pelaajan näppäimet
+
+Const MAIN_PLAYER_COLOR       = 8     //Sisältää pelaajan tunnusvärin
+Const MAIN_PLAYER_SKIN        = 12    //Sisältää pelaajan ihonvärin
+Const MAIN_PLAYER_CUSTOMPARTS = 16    //Sisältää tiedot pelaajan osista
+
+Const MAIN_PLAYER_TEAM        = 20    //Sisältää pelaajan joukkueen numeron
+Const MAIN_PLAYER_NPC         = 24    //Onko ihmispelaaja (0) vai tekoäly (taitavuus 1, 2 tai 3)
+Const MAIN_PLAYER_POINTS      = 28    //Sisältää pelaajan pisteet (Int)
+
+Const MAIN_PLAYER_DYNAMIC     = 32    //Viittaa muistipalaan, joka on tarkoitettu minipelikohtaista tiedontallennusta varten
 
 //Pelaajan muistipalan koko
-Const MAIN_PLAYER_STATIC_SIZE = 28
+Const MAIN_PLAYER_STATIC_SIZE = 36
 
 //Pelaajien maksimimäärä 8, tietokoneelle harvoin pystyy sen enempää pelaamaan (loppuu näppäimet ja kapulat :D )
 Const MAIN_MAX_PLAYERS = 8
@@ -46,12 +51,8 @@ Function MAIN_AddPlayer(name$, r = -1, g = -1, b = -1)
 		iS\txt$ = name$
 		id = ConvertToInteger(iS)  
 
-		col = MakeMEMBlock(4)
-		ctrl = MakeMEMBlock(API_ACTIONS + 1)
-		
 		PokeInt player, MAIN_PLAYER_NAME, id
-		PokeInt player, MAIN_PLAYER_COLOR, col
-		PokeInt player, MAIN_PLAYER_CONTROLS, ctrl
+		PokeInt player, MAIN_PLAYER_CONTROLS, MakeMEMBlock(API_ACTIONS + 1)
 		PokeInt player, MAIN_PLAYER_POINTS, 0
 		PokeInt player, MAIN_PLAYER_DYNAMIC, MakeMEMBlock(4)
 		
@@ -120,29 +121,28 @@ Function API_PlayerColor(number, r = -1, g = -1, b = -1)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
 		player = MAIN_PlayerData(number)
 		
-		col = PeekInt(player, MAIN_PLAYER_COLOR)
-		
 		If r = -1 Then
 			c = Rand(1, 6)
 			c = c Shl 29
-			PokeByte col, RED, 127 + 127 * (c Shr 31) 
+			PokeByte player, MAIN_PLAYER_COLOR + 3 - RED, 127 + 127 * (c Shr 31) 
 			
 			c = c Shl 1
-			PokeByte col, GREEN, 127 + 127 * (c Shr 31) 
+			PokeByte player, MAIN_PLAYER_COLOR + 3 - GREEN, 127 + 127 * (c Shr 31) 
 			
 			c = c Shl 1
-			PokeByte col, BLUE, 127 + 127 * (c Shr 31) 
+			PokeByte player, MAIN_PLAYER_COLOR + 3 - BLUE, 127 + 127 * (c Shr 31) 
 		Else 
 			If g = -1 Or b = -1 And (r => 0 And r < 4)
 				If r = 0 Then
-					Return PeekByte(col, BLUE) + (PeekByte(col, GREEN) * 256) + (PeekByte(col, RED) * 65536) + (255 Shl 24)
+					Return PeekInt(player, MAIN_PLAYER_COLOR)
 				Else
-					Return PeekByte(col, r)
+					Return PeekByte(player, MAIN_PLAYER_COLOR + 3 - r)
 				EndIf
 			Else
-				PokeByte col, RED, r Mod 256
-				PokeByte col, GREEN, g Mod 256
-				PokeByte col, BLUE, b Mod 256
+				PokeByte player, MAIN_PLAYER_COLOR + 3 - RED, r Mod 256
+				PokeByte player, MAIN_PLAYER_COLOR + 3 - GREEN, g Mod 256
+				PokeByte player, MAIN_PLAYER_COLOR + 3 - BLUE, b Mod 256
+				PokeByte player, MAIN_PLAYER_COLOR + 4, 255
 			EndIf
 		EndIf   
 	EndIf 
@@ -255,3 +255,10 @@ Function MAIN_LoadKeys()
 		EndIf 
 	Next i
 End Function
+
+
+//Kokoaa hahmon osista
+Function MAIN_CompileSideScrollingCharacter(number)
+	If FileExists("GlobalMedia\CharacterSideParts") Then
+	EndIf
+EndFunction
