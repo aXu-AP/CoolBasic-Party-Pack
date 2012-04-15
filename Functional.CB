@@ -87,6 +87,49 @@ Function API_DrawScreen()
 EndFunction	
 
 
+Function API_MakeError(message$,critical=0)
+
+	DrawToWorld OFF,OFF,OFF 
+
+	error = API_LoadImage("error.png")
+	MaskImage error, 255, 255, 0
+	
+	DrawImage error,0,0
+	
+	r = getRGB (RED)
+	g = getRGB (RED)
+	b = getRGB (RED)
+
+	Color 0,0,0
+	
+    If MAIN_RunningGameID <> "" Then
+		iG.MAIN_Game = converttotype(MAIN_GetGame(MAIN_RunningGameID))
+		Text 170, 20, "Virhe pelissä "+iG\Name+" :"
+		Text 170, 40, Chr(34)+message$+Chr(34)
+		
+		If critical Then Text 170, 100, "Palaa päävalikkoon painalla mitä tahansa näppäintä"
+	Else 
+		Text 170, 20,message$
+		
+		If critical Then Text 170, 100, "Palaa päävalikkoon painalla mitä tahansa näppäintä"
+	EndIf 
+		
+	DrawScreen
+	
+	WaitKey
+	
+	Color r, g, b
+
+	If critical Then 
+		MAIN_ClearMedia("*CLONE")
+		MAIN_RunningGameID = ""
+		API_ResetToDefaults()
+		MAIN_SelectGame()
+	EndIf 
+	
+End Function 
+
+
 
 //Hiiren x-koordinaatti renderöintikoordinaatistossa
 Function API_MouseX()
