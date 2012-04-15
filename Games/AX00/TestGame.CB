@@ -8,9 +8,9 @@ Function AX00_Game()
 	PlayerCount = API_PlayerCount()
 	
 	Ukkokuva = API_LoadImage("Naama.png")
-	Maski = API_LoadImage("Naama2.png")
+	'Maski = API_LoadImage("Naama2.png")
 	
-	API_Recolor(0, Ukkokuva, Maski)
+	API_Recolor(0, Ukkokuva, 0)
 	
 	API_PlayerInt(0, AX00_Ukko, API_MakeObject(72))
 	PaintObject API_PlayerInt(0, AX00_Ukko), -Ukkokuva
