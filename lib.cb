@@ -1,0 +1,76 @@
+
+//copy from cbSDK
+//http://www.kpelit.fi/?c=1633
+Type LIB_FX_EXPLODECHIPS
+    Field img
+    Field sx As Float
+    Field sy As Float
+    Field sw As Float
+    Field sh As Float
+    Field x As Float
+    Field y As Float
+    Field vx As Float
+    Field vy As Float
+    Field gx As Float
+    Field gy As Float
+    Field shrink As Float
+EndType
+
+Function LIB_ExplodeImage(_image, _x, _y, _explodeX, _explodeY, _splitX, _splitY, _speedMin#, _speedMax#, _shrinkMin#, _shrinkMax#, _gravityX#, _gravityY#)
+    If _splitX <= 0 Or _splitY <= 0 Then Return False
+    If _splitX = 1 And _splitY = 1 Then Return False
+    lImageWidth = ImageWidth(_image)
+    lImageheight = ImageHeight(_image)
+    xs = lImageWidth / _splitX
+    ys = lImageheight / _splitY
+    For x = 0 To _splitX - 1
+        For y = 0 To _splitY - 1
+            chip.LIB_FX_EXPLODECHIPS = New(LIB_FX_EXPLODECHIPS)
+            chip\img = _image
+            chip\sx = x * xs
+            chip\sy = y * ys
+            chip\sw = xs
+            chip\sh = ys
+            chip\x = _x + x * xs
+            chip\y = _y + y * ys
+            angle# = GetAngle(_explodeX, _explodeY, x * xs + xs/2, y * ys + ys/2) + 90
+            speed# = Rnd(_speedMin, _speedMax)
+            chip\vx = Sin(angle) * speed
+            chip\vy = Cos(angle) * speed
+            chip\gx = _gravityX
+            chip\gy = _gravityY
+            chip\shrink = Rnd(_shrinkMin, _shrinkMax)
+        Next y
+    Next x
+EndFunction
+
+Global LIB_gFXFrameTime#, LIB_gFXTmpTime
+LIB_gFXFrameTime = 0.0
+LIB_gFXTmpTime = 0
+
+Function LIB_UpdateImageExplode()
+    For chip.LIB_FX_EXPLODECHIPS = Each LIB_FX_EXPLODECHIPS
+        x# = chip\x
+        y# = chip\y
+        chip\vx = chip\vx + chip\gx * LIB_gFXFrameTime
+        chip\vy = chip\vy + chip\gy * LIB_gFXFrameTime
+        DrawImageBox chip\img, x, y, chip\sx, chip\sy, chip\sw, chip\sh
+        chip\x = x + chip\vx * LIB_gFXFrameTime
+        chip\y = y + chip\vy * LIB_gFXFrameTime
+        chip\sw = chip\sw - chip\shrink * LIB_gFXFrameTime
+        chip\sh = chip\sh - chip\shrink * LIB_gFXFrameTime
+        If chip\sw <= 0 Or chip\sh <= 0 Then
+            Delete chip
+        EndIf
+    Next chip
+EndFunction
+
+Function LIB_UpdateEffects()
+    curTime = Timer()
+    If LIB_gFXTmpTime = 0 Then LIB_gFXTmpTime = curTime
+    LIB_gFXFrameTime = (curTime - LIB_gFXTmpTime) / 1000.0
+    LIB_gFXTmpTime = curTime
+    If LIB_gFXFrameTime > 1.0 Then LIB_gFXFrameTime = 0.0
+    LIB_UpdateImageExplode()
+EndFunction
+

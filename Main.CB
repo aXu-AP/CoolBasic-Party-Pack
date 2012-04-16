@@ -2,6 +2,7 @@
 MAIN_Screen(640, 480, 1)
 MAIN_Resolution(640, 480)
 
+Include "Lib.cb"			//cbSDK:n funktioita
 Include "Players.cb"        //Pelaajien hallinta
 Include "Input.cb"          //Syötefunktiot
 Include "Media.cb"          //Median lataaminen, tuhoaminen

@@ -11,15 +11,21 @@ Const ME00_SPEED = 12
 Type ME00_Rock
 	Field x
 	Field y
+	Field hp
+	Field imagenum
 	Field minerals
 EndType
 
-Function ME00_AddRock() 
+Dim ME00_RockImage(10)
+
+Function ME00_AddRock()
 	
 	r.ME00_Rock = New(ME00_Rock)
 	
-	//r\x = 
-
+	r\x = CameraX()+ API_RenderW
+	r\y = CameraY()+ Rand(-API_RenderH/2,API_RenderH/2)
+	r\imagenum = Rand(9)
+	r\hp = Rand(40,60)
 
 EndFunction 
 
@@ -27,6 +33,20 @@ Function ME00_Game()
 
 	PlayerCount = API_PlayerCount()
 	
+	RockImage = API_LoadImage("rocks.png")
+	
+	For i=0 To 9
+	
+		ME00_RockImage(i) = API_MakeImage(60,60)
+		
+		CopyBox i*60,0,60,60,0,0,Image(RockImage),Image(ME00_RockImage(i))
+	
+	Next i
+
+	For i=0 To 5
+		ME00_AddRock()
+	Next i
+
 	//luodaan pelaajille alukset
 	For i=0 To PlayerCount-1
 	
@@ -51,6 +71,13 @@ Function ME00_Game()
 
 	Repeat
 	
+		If Timer() > t Then 
+		
+			ME00_AddRock()
+			t= Timer()+300
+		
+		EndIf 
+	
 		cx# = CameraX()
 		cy# = CameraY()
 	
@@ -62,16 +89,23 @@ Function ME00_Game()
 		
 		DrawGame 
 		
-		totalSpeed# = 1.5
+		For r.ME00_Rock = Each ME00_Rock
+		
+			If r\hp > 0 Then 
+		
+				DrawImage ME00_RockImage(r\imagenum),r\x,r\y
+			
+			EndIf 
 
+			If (cx# - API_RenderW/2 - 100 > r\x ) Then Delete r
+		
+		Next r
+		
+		totalSpeed# = 2.0
+		
 		For i=0 To PlayerCount-1
 		
 			speed# = API_PlayerFloat(i, ME00_SPEED)
-			
-			If ( API_KeyHit(i,API_ACTION1)) Then 
-				API_MakeError("Ampuminen ei toimi!!1",1)
-				DrawToWorld ON,ON,ON 
-			EndIf 
 		
 		    dy# = Float(API_KeyDown(i, API_DOWN) - API_KeyDown(i, API_UP)) * speed#
 			dx# = Float(API_KeyDown(i, API_RIGHT) - API_KeyDown(i, API_LEFT)) * speed#*1.5
@@ -84,16 +118,42 @@ Function ME00_Game()
 			
 			API_PlayerFloat(i, ME00_X, x#)
 			API_PlayerFloat(i, ME00_Y, y#)
+				
+			If ( API_KeyHit(i,API_ACTION1)) Then 
+			
+				Color API_PlayerColor(i, RED),API_PlayerColor(i, GREEN),API_PlayerColor(i, BLUE)
+			
+				rayX# = x# + 20
+				rayY# = y# + 12
+			
+				Line rayX#,-rayY#,rayX#+100,-rayY#
+			
+				For r.ME00_Rock = Each ME00_Rock
+				
+					If BoxOverlap(rayX#,rayY#,100,5,r\x,r\y,55,55) Then 
+						LIB_ExplodeImage(ME00_RockImage(r\imagenum), r\x,r\y, 0, 30, 17, 17, 4, 20, 2, 5, 5, 0)
+						Delete r
+					EndIf 
+				
+				Next r
+
+			EndIf 
 			
 			DrawImage API_PlayerInt(i, ME00_SHIP), x#, y#
 
 		Next i
 		
+		LIB_UpdateEffects()
+
 		TranslateCamera totalSpeed#,0
 		
 		API_DrawScreen()
 		
 	Until EscapeKey()
+	
+	For r.ME00_Rock = Each ME00_Rock
+		Delete r
+	Next r
 	
 	DrawToWorld OFF,OFF,OFF
 	PositionCamera 0,0

@@ -20,6 +20,9 @@ Function AX00_Game()
 		For a = 1 To 10
 			tmptxt = tmptxt + Chr(Rand(32, 255))
 		Next a
+
+		API_PlayerHeadgear(i, rand(0,1))
+		
 		API_PlayerString(i, AX00_Teksti, tmptxt$)
 		
 		API_PlayerInt(i, AX00_Ukko, MAIN_CompileCharacter(i))
