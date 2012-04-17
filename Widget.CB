@@ -28,6 +28,8 @@ Type MAIN_Widget
 	Field widgetData
 EndType
 
+
+//Lis‰‰ widgetin annetulla tyypill‰ ja asettaa sen n‰kyvyyden
 Function API_AddWidget(widgetType,visible=1)
 
 	If (widgetType > 0  And widgetType <= MAIN_WIDGET_TYPES) Then 
@@ -85,6 +87,7 @@ Function API_WidgetString(number, dataField, value$ = "TOIVOTAANett‰EItuleT÷RMƒY
 	Return value$
 EndFunction
 
+//Asettaa annetun widgetin paikoilleen
 Function API_PositionWidget(widget, position = 0, y = 0)
 
 	If ( widget <> 0 ) Then 
@@ -155,6 +158,7 @@ Function API_PositionWidget(widget, position = 0, y = 0)
 
 EndFunction 
 
+//Piirt‰‰ n‰kyv‰t widgetit
 Function MAIN_DrawWidgets()
 
 	For w.MAIN_WIDGET = Each MAIN_Widget
@@ -238,7 +242,10 @@ Function MAIN_DrawWidgets()
 
 EndFunction 
 
+//Poistaa kaikki widgetit
 Function MAIN_DeleteWidgets()
+
+	//TODO: Erikoisk‰sittelyt widgeteille joilla ON omassa datassa muistipaloja
 
 	For w.MAIN_WIDGET = Each MAIN_Widget
 	

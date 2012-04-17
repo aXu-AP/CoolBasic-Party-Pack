@@ -4,11 +4,6 @@ Global MAIN_GameCount
 //T‰m‰ muuttuja pit‰‰ sis‰ll‰‰n k‰ynniss‰ olevan pelin ID:n
 Global MAIN_RunningGameID As String 
 
-//T‰ss‰ kohtaa ladataan KAIKKI minipelit
-Include "Games/AX00/TestGame.CB"
-Include "Games/ME00/SpaceMiners.CB"
-
-
 //T‰m‰ tyyppikokoelma pit‰‰ listaa kaikista peleist‰ ja niiden tiedoista
 Type MAIN_Game
 	Field ID$                //Pelin ID (sama kuin prefiksi ja kansio)
@@ -168,41 +163,6 @@ Function MAIN_SelectGame()
 EndFunction 
 
 
-//Aloittaa pelin
-Function MAIN_Start(ID$, GameData)
-	MAIN_GameData = GameData
-	API_ResetToDefaults()
-	MAIN_RunningGameID = ID$
-	Select ID
-		Case "AX00"
-			AX00_Game()
-		Case "ME00"
-			ME00_Game()
-		Default
-			MakeError "Peli‰ " + Name + " ei lˆytynyt!"
-	EndSelect
-	MAIN_Stop()
-EndFunction
-
-
-//Lopettaa pelin
-Function MAIN_Stop()
-	Select MAIN_RunningGameID
-		Case "AX00"
-			AX00_End()
-		Case "ME00"
-			ME00_End()
-		Default
-			//Game is Not running
-	EndSelect
-	MAIN_DeleteWidgets()
-	MAIN_ResetPlayersDataBlocks()
-	MAIN_ClearMedia("*CLONE")
-	MAIN_RunningGameID = ""
-	API_ResetToDefaults()
-EndFunction
-
-
 //Tarkastaa, voidaanko peli‰ pelata annetuilla asetuksilla
 Function MAIN_GameCompatible(Game, GameData)
 	iG.MAIN_Game = ConvertToType(Game)
@@ -284,3 +244,26 @@ Function API_Difficulty(GameData = 0, difficulty = -1)
 	EndIf
 EndFunction
 
+
+//Aloittaa pelin
+Function MAIN_Start(ID$, GameData)
+	MAIN_GameData = GameData
+	API_ResetToDefaults()
+	MAIN_RunningGameID = ID$
+	Include "Games\Start.cb"
+	MAIN_Stop()
+EndFunction
+
+
+//Lopettaa pelin
+Function MAIN_Stop()
+	Include "Games\Stop.cb"
+	MAIN_DeleteWidgets()
+	MAIN_ResetPlayersDataBlocks()
+	MAIN_ClearMedia("*CLONE")
+	MAIN_RunningGameID = ""
+	API_ResetToDefaults()
+EndFunction
+
+//T‰ss‰ kohtaa ladataan KAIKKI minipelit
+Include "Games\Include.cb"
