@@ -1,8 +1,0 @@
-Select ID$
-    Case "AX00"
-        AX00_End()
-    Case "ME00"
-        ME00_End()
-Default
-    //Game is Not running
-EndSelect
