@@ -156,6 +156,25 @@ Function API_PlayerDataBlock(number)
 	Return PeekInt(MAIN_PlayerData(number), MAIN_PLAYER_DYNAMIC)
 EndFunction
 
+//Tyhjentää pelaajien muistipalat
+Function MAIN_ResetPlayersDataBlocks()
+
+	For p = 0 To MAIN_PlayerAmount - 1
+		player = MAIN_PlayerData(p)
+		
+		If player <> 0 Then 
+			dynamic = PeekInt(player, MAIN_PLAYER_DYNAMIC)
+		
+			If dynamic <> 0 Then 
+				For i = 0 To MEMBlockSize(dynamic) - 1 
+					PokeByte dynamic, i, 0
+				Next i
+			EndIf 
+			
+		EndIf 
+	Next p
+	
+EndFunction
 
 //Asettaa tai palauttaa kokonaisluvun
 Function API_PlayerInt(number, dataField, value$ = "NAN")
@@ -193,7 +212,7 @@ EndFunction
 Function API_PlayerString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!")
 	dynamic = PeekInt(MAIN_PlayerData(number), MAIN_PLAYER_DYNAMIC)
 	dataField = dataField * 4
-	
+
 	//Venytetään palikkaa jos tarpeen
 	If dataField + 4 > MEMBlockSize(dynamic) Then ResizeMEMBlock dynamic, dataField + 4
 	
@@ -202,7 +221,6 @@ Function API_PlayerString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄY
 	If address = 0 Then
 		iS.MAIN_CommonString = New(MAIN_CommonString)
 		id = ConvertToInteger(iS)
-		
 		PokeInt dynamic, dataField, id
 	Else
 		iS = ConvertToType(address)
@@ -213,6 +231,7 @@ Function API_PlayerString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄY
 	Else
 		iS\txt = value
 	EndIf
+	
 EndFunction
 
 

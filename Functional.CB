@@ -121,9 +121,7 @@ Function API_MakeError(message$,critical=0)
 	Color r, g, b
 
 	If critical Then 
-		MAIN_ClearMedia("*CLONE")
-		MAIN_RunningGameID = ""
-		API_ResetToDefaults()
+		MAIN_Stop()
 		MAIN_SelectGame()
 	EndIf 
 	
@@ -220,6 +218,7 @@ Function API_ResetToDefaults()
 	PositionCamera 0, 0
 	DrawToWorld OFF, OFF, OFF
 	DrawToScreen
+	SAFEEXIT OFF 
 	
 	DefaultVisible ON
 	

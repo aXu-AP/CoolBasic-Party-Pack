@@ -1,12 +1,10 @@
 //Lis‰t‰‰n peli pelikokoelmaan nimell‰ TestGame (nime‰ tarvitaan muiden tietojen hakemiseen)
 API_AddGame("ME00")
 
-SAFEEXIT OFF 
-
 Const ME00_X = 0
-Const ME00_Y = 4
-Const ME00_SHIP = 8
-Const ME00_SPEED = 12
+Const ME00_Y = 1
+Const ME00_SHIP = 2
+Const ME00_SPEED = 3
 
 Type ME00_Rock
 	Field x
@@ -30,6 +28,8 @@ Function ME00_AddRock()
 EndFunction 
 
 Function ME00_Game()
+
+	SAFEEXIT OFF 
 
 	PlayerCount = API_PlayerCount()
 	
@@ -151,13 +151,15 @@ Function ME00_Game()
 		
 	Until EscapeKey()
 	
+	Return 0
+
+EndFunction
+
+Function ME00_End()
+
 	For r.ME00_Rock = Each ME00_Rock
 		Delete r
 	Next r
-	
-	DrawToWorld OFF,OFF,OFF
-	PositionCamera 0,0
-	
-	SAFEEXIT ON
 
-EndFunction
+End Function 
+

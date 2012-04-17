@@ -181,6 +181,21 @@ Function MAIN_Start(ID$, GameData)
 		Default
 			MakeError "Peliä " + Name + " ei löytynyt!"
 	EndSelect
+	MAIN_Stop()
+EndFunction
+
+
+//Lopettaa pelin
+Function MAIN_Stop()
+	Select MAIN_RunningGameID
+		Case "AX00"
+			AX00_End()
+		Case "ME00"
+			ME00_End()
+		Default
+			//Game is Not running
+	EndSelect
+	MAIN_ResetPlayersDataBlocks()
 	MAIN_ClearMedia("*CLONE")
 	MAIN_RunningGameID = ""
 	API_ResetToDefaults()

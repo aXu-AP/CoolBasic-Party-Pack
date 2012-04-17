@@ -15,20 +15,25 @@ Function AX00_Game()
 	'API_PlayerInt(0, AX00_Ukko, API_MakeObject(72))
 	'PaintObject API_PlayerInt(0, AX00_Ukko), -Ukkokuva
 	
+	
 	For i = 0 To PlayerCount - 1
 		tmptxt$ = ""
 		For a = 1 To 10
-			tmptxt = tmptxt + Chr(Rand(32, 255))
+			tmptxt$ = tmptxt$ + Chr(Rand(32, 255))
 		Next a
 
 		API_PlayerHeadgear(i, rand(0,1))
 		
-		API_PlayerString(i, AX00_Teksti, tmptxt$)
+		API_PlayerString(i, AX00_Teksti, "lol")//tmptxt$)
 		
 		API_PlayerInt(i, AX00_Ukko, MAIN_CompileCharacter(i))
+		
 	Next i
 	
+	
+	
 	Repeat
+		
 		For i = 0 To PlayerCount - 1
 			//Pelaaja voittaa heti kun painaa nappia
 			If API_KeyHit(i, API_ACTION1) Then
@@ -40,8 +45,13 @@ Function AX00_Game()
 			Text 0, i * 15, "Pelaajanro" + i + " merkkijono: " + API_PlayerString(i, AX00_Teksti)
 			
 			DrawImage API_PlayerInt(i, AX00_Ukko), 64 + i * 64, 200
-		Next i
+		Next i 
 
 		API_DrawScreen()
 	Forever
 EndFunction
+
+
+Function AX00_End()
+	//nothing To do
+End Function 
