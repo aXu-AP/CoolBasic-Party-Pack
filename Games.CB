@@ -195,6 +195,7 @@ Function MAIN_Stop()
 		Default
 			//Game is Not running
 	EndSelect
+	MAIN_DeleteWidgets()
 	MAIN_ResetPlayersDataBlocks()
 	MAIN_ClearMedia("*CLONE")
 	MAIN_RunningGameID = ""

@@ -67,6 +67,19 @@ Function MAIN_AddPlayer(name$, r = -1, g = -1, b = -1)
 EndFunction 
 
 
+// Palauttaa pelaajan nimen tai tyhjän merkkijonon jos pelaajaa ei löydy
+Function API_PlayerName(number)
+	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
+	
+		player = MAIN_PlayerData(number)
+		
+		return MAIN_MemString(player,MAIN_PLAYER_NAME) 
+
+	EndIf 
+	
+	Return ""
+EndFunction
+
 // Asettaa ja palauttaa pelaajan tekoälyarvon
 Function API_PlayerNPC(number, npc = -1)
 	If (number >= 0 And number < MAIN_MAX_PLAYERS) Then
@@ -178,62 +191,30 @@ EndFunction
 
 //Asettaa tai palauttaa kokonaisluvun
 Function API_PlayerInt(number, dataField, value$ = "NAN")
-	dynamic = PeekInt(MAIN_PlayerData(number), MAIN_PLAYER_DYNAMIC)
-	dataField = dataField * 4
-	
-	//Venytetään palikkaa jos tarpeen
-	If dataField + 4 > MEMBlockSize(dynamic) Then ResizeMEMBlock dynamic, dataField + 4
-	
-	If value = "NAN" Then
-		Return PeekInt(dynamic, dataField)
-	Else
-		PokeInt dynamic, dataField, Int(value)
-		Return value
-	EndIf
+	player = MAIN_PlayerData(number)
+	dynamic = PeekInt(player,MAIN_PLAYER_DYNAMIC)
+	iValue = MAIN_MemInt(dynamic, dataField, value$)
+	PokeInt player,MAIN_PLAYER_DYNAMIC,MAIN_MemChangedAddress
+	Return iValue
 EndFunction
 
 //Asettaa tai palauttaa liukuluvun
 Function API_PlayerFloat(number, dataField, value$ = "NAN")
-	dynamic = PeekInt(MAIN_PlayerData(number), MAIN_PLAYER_DYNAMIC)
-	dataField = dataField * 4
-	
-	//Venytetään palikkaa jos tarpeen
-	If dataField + 4 > MEMBlockSize(dynamic) Then ResizeMEMBlock dynamic, dataField + 4
-	
-	If value = "NAN" Then
-		Return PeekFloat(dynamic, dataField)
-	Else
-		PokeFloat dynamic, dataField, Float(value)
-		Return value
-	EndIf
+	player = MAIN_PlayerData(number)
+	dynamic = PeekInt(player,MAIN_PLAYER_DYNAMIC)
+	fValue# = MAIN_MemFloat(dynamic, dataField, value$)
+	PokeInt player, MAIN_PLAYER_DYNAMIC, MAIN_MemChangedAddress
+	Return fValue#
 EndFunction
 
 //Asettaa tai palauttaa merkkijonon
 Function API_PlayerString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!")
-	dynamic = PeekInt(MAIN_PlayerData(number), MAIN_PLAYER_DYNAMIC)
-	dataField = dataField * 4
-
-	//Venytetään palikkaa jos tarpeen
-	If dataField + 4 > MEMBlockSize(dynamic) Then ResizeMEMBlock dynamic, dataField + 4
-	
-	//Tehdään uusi merkkijono, jos ei ole olemassa
-	address = PeekInt(dynamic, dataField)
-	If address = 0 Then
-		iS.MAIN_CommonString = New(MAIN_CommonString)
-		id = ConvertToInteger(iS)
-		PokeInt dynamic, dataField, id
-	Else
-		iS = ConvertToType(address)
-	EndIf
-	
-	If value = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!" Then
-		Return iS\txt
-	Else
-		iS\txt = value
-	EndIf
-	
+	player = MAIN_PlayerData(number)
+	dynamic = PeekInt(player,MAIN_PLAYER_DYNAMIC)
+	sValue$ = MAIN_MemFloat(dynamic, dataField, value$)
+	PokeInt player, MAIN_PLAYER_DYNAMIC, MAIN_MemChangedAddress
+	Return sValue$
 EndFunction
-
 
 //Kopioi staatisen ja/tai dynaamisen muistipalan
 //pelaajalle jos annettu pala on erisuuri kuin nolla

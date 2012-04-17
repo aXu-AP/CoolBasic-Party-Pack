@@ -8,6 +8,7 @@ Include "Input.cb"          //Syötefunktiot
 Include "Media.cb"          //Median lataaminen, tuhoaminen
 Include "Functional.cb"     //Sekalaisia funktioita
 Include "Gamesettings.cb"
+Include "Widget.cb"
 Include "Games.cb"          //Sisältää kaiken minipelien hallintaa varten
 
 MAIN_AddPlayer("Pelle pelaaja", 0, 255, 0)

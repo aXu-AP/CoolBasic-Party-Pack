@@ -57,6 +57,10 @@ Function API_DrawScreen()
 	
 	//TODO: Käyttöliittymäkomponentit
 	
+	DrawToWorld OFF, OFF, OFF
+	
+	MAIN_DrawWidgets()
+	
 	//TODO: Simuloi hiirtä kokoruudulla
 
 	//Skaalataan vain jos ruudun koko ei vastaa haluttua
@@ -66,7 +70,6 @@ Function API_DrawScreen()
 		Next y
 		
 		Cls 
-		DrawToWorld OFF, OFF
 		
 		For x = 0 To API_RenderW - 1
 			CopyBox x, 0, 1, API_RenderH * MAIN_RenderZoom, x * MAIN_RenderZoom + i, 0, Image(MAIN_MidImage), Image(MAIN_FinImage)
@@ -128,7 +131,6 @@ Function API_MakeError(message$,critical=0)
 End Function 
 
 
-
 //Hiiren x-koordinaatti renderöintikoordinaatistossa
 Function API_MouseX()
 	Return (MouseX()- MAIN_ScreenOffsetX) / MAIN_RenderZoom 
@@ -146,7 +148,6 @@ Function API_MouseInBox(x,y,w,h)
 	my = API_MouseY()
 	Return (mx >= x And mx < x+w And my >= y And my< y+h)
 EndFunction 
-
 
 
 //Värjää kuvan pelaajan tunnusvärillä
@@ -234,3 +235,71 @@ Function API_ResetToDefaults()
 	
 	Smooth2D OFF
 EndFunction
+
+Global MAIN_MemChangedAddress 
+
+//Asettaa tai palauttaa kokonaisluvun
+Function MAIN_MemInt(dynamic, offset, value$ = "NAN")
+	offset = offset * 4
+	
+	//Venytetään palikkaa jos tarpeen
+	If offset + 4 > MEMBlockSize(dynamic) Then ResizeMEMBlock dynamic, offset + 4
+
+	MAIN_MemChangedAddress = dynamic
+		
+	If value$ = "NAN" Then
+		Return PeekInt(dynamic, offset)
+	Else
+		iValue = Int(value)
+		PokeInt dynamic, offset,iValue 
+		Return iValue
+	EndIf
+	
+EndFunction
+
+//Asettaa tai palauttaa desimaaliluvun
+Function MAIN_MemFloat(dynamic, offset, value$ = "NAN")
+	offset = offset * 4
+
+	//Venytetään palikkaa jos tarpeen
+	If offset + 4 > MEMBlockSize(dynamic) Then ResizeMEMBlock dynamic, offset + 4
+
+	MAIN_MemChangedAddress = dynamic
+		
+	If value$ = "NAN" Then
+		Return PeekFloat(dynamic, offset)
+	Else
+		fValue# = Float(value$)
+		PokeFloat dynamic, offset,fValue# 
+		Return fValue#
+	EndIf
+	
+EndFunction
+
+//Asettaa tai palauttaa merkkijonon
+Function MAIN_MemString(dynamic, offset, value$ = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!")
+	offset = offset * 4
+	
+	//Venytetään palikkaa jos tarpeen
+	If offset + 4 > MEMBlockSize(dynamic) Then ResizeMEMBlock dynamic, offset + 4
+		
+	MAIN_MemChangedAddress = dynamic
+
+	//Tehdään uusi merkkijono, jos ei ole olemassa
+	address = PeekInt(dynamic, offset)
+	If address = 0 Then
+		iS.MAIN_CommonString = New(MAIN_CommonString)
+		id = ConvertToInteger(iS)
+		PokeInt dynamic, offset, id
+	Else
+		iS = ConvertToType(address)
+	EndIf
+	
+	If value = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!" Then
+		Return iS\txt
+	Else
+		iS\txt = value$
+	EndIf
+	
+EndFunction
+
