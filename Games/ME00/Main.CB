@@ -1,0 +1,180 @@
+//Lisätään peli pelikokoelmaan nimellä TestGame (nimeä tarvitaan muiden tietojen hakemiseen)
+API_AddGame("ME00")
+
+Const ME00_X = 0
+Const ME00_Y = 1
+Const ME00_SHIP = 2
+Const ME00_SPEED = 3
+
+Type ME00_Rock
+	Field x
+	Field y
+	Field hp
+	Field imagenum
+	Field minerals
+EndType
+
+Dim ME00_RockImage(10)
+
+Function ME00_AddRock()
+	
+	r.ME00_Rock = New(ME00_Rock)
+	
+	r\x = CameraX()+ API_RenderW
+	r\y = CameraY()+ Rand(-API_RenderH/2,API_RenderH/2)
+	r\imagenum = Rand(9)
+	r\hp = Rand(40,60)
+
+EndFunction 
+
+Function ME00_Game()
+
+	scoreWidget = API_AddWidget(API_WIDGET_PLAYERSCORE)
+	
+	API_PositionWidget(scoreWidget, API_POSITION_TOP)
+	
+	timerWidget = API_AddWidget(API_WIDGET_TIMER)
+	
+	API_PositionWidget(timerWidget, API_POSITION_BOTTOM)
+	
+	API_WidgetInt(timerWidget, API_WD_TIMER_START, Timer())
+	API_WidgetInt(timerWidget, API_WD_TIMER_TIME, 90000)
+	
+	PlayerCount = API_PlayerCount()
+	
+	RockImage = API_LoadImage("rocks.png")
+	
+	For i=0 To 9
+	
+		ME00_RockImage(i) = API_MakeImage(60,60)
+		
+		CopyBox i*60,0,60,60,0,0,Image(RockImage),Image(ME00_RockImage(i))
+	
+	Next i
+
+	For i=0 To 5
+		ME00_AddRock()
+	Next i
+
+	//luodaan pelaajille alukset
+	For i=0 To PlayerCount-1
+	
+		API_PlayerFloat(i, ME00_X, 0)
+		API_PlayerFloat(i, ME00_Y, i * 30)
+		
+		API_PlayerInt(i, ME00_SHIP, API_Recolor(i, API_LoadImage("ship.png")))
+		
+		API_PlayerFloat(i, ME00_SPEED, 2.5)
+
+		API_PlayerPoints(i, 0)
+	
+	Next i
+	
+	background = API_MakeObjectFloor()
+	stars = API_LoadImage("stars.png")
+	PaintObject background,stars
+
+	PositionCamera 0,0
+
+	Repeat
+	
+		DrawToWorld ON,ON,ON 
+	
+		If Timer() > t Then 
+		
+			ME00_AddRock()
+			t= Timer()+300
+		
+		EndIf 
+	
+		cx# = CameraX()
+		cy# = CameraY()
+	
+		minX#  = cx# - API_RenderW/2.1
+		maxX#  = cx# + API_RenderW/2.2
+		
+		minY#  = cy# - API_RenderH/2.1
+		maxY#  = cy# + API_RenderH/2.2
+		
+		DrawGame 
+		
+		For r.ME00_Rock = Each ME00_Rock
+		
+			If r\hp > 0 Then 
+		
+				DrawImage ME00_RockImage(r\imagenum),r\x,r\y
+			
+			EndIf 
+
+			If (cx# - API_RenderW/2 - 100 > r\x ) Then Delete r
+		
+		Next r
+		
+		totalSpeed# = 2.0
+
+		For i=0 To PlayerCount-1
+		
+			speed# = API_PlayerFloat(i, ME00_SPEED)
+		
+		    dy# = Float(API_KeyDown(i, API_DOWN) - API_KeyDown(i, API_UP)) * speed#
+			dx# = Float(API_KeyDown(i, API_RIGHT) - API_KeyDown(i, API_LEFT)) * speed#*1.5
+		
+			y# = API_PlayerFloat(i, ME00_Y) + dy#  
+			x# = API_PlayerFloat(i, ME00_X) + dx#
+			
+			x# = Min(Max(x#, minX#), maxX#)
+			y# = Min(Max(y#, minY#), maxY#)
+			
+			API_PlayerFloat(i, ME00_X, x#)
+			API_PlayerFloat(i, ME00_Y, y#)
+				
+			If ( API_KeyHit(i,API_ACTION1)) Then 
+			
+				Color API_PlayerColor(i, RED),API_PlayerColor(i, GREEN),API_PlayerColor(i, BLUE)
+			
+				rayX# = x# + 20
+				rayY# = y# + 12
+			
+				Line rayX#,-rayY#,rayX#+100,-rayY#
+			
+				For r.ME00_Rock = Each ME00_Rock
+				
+					If BoxOverlap(rayX#,rayY#,100,5,r\x,r\y,55,55) Then 
+						LIB_ExplodeImage(ME00_RockImage(r\imagenum), r\x,r\y, 0, 30, 17, 17, 4, 20, 2, 5, 5, 0)
+						
+						points = API_PlayerPoints(i)
+						API_PlayerPoints(i,points+1)
+						
+						Delete r
+					EndIf 
+				
+				Next r
+
+			EndIf 
+			
+			DrawImage API_PlayerInt(i, ME00_SHIP), x#, y#
+
+		Next i
+		
+		LIB_UpdateEffects()
+
+		TranslateCamera totalSpeed#,0
+		
+		API_DrawScreen()
+		
+		
+		
+	Until EscapeKey()
+	
+	Return 0
+
+EndFunction
+
+Function ME00_End()
+
+	For r.ME00_Rock = Each ME00_Rock
+		Delete r
+	Next r
+
+End Function 
+
