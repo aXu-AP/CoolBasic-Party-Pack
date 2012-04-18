@@ -57,7 +57,7 @@ Function ME00_Game()
 	For i=0 To PlayerCount-1
 	
 		API_PlayerFloat(i, ME00_X, 0)
-		API_PlayerFloat(i, ME00_Y, i * 30)
+		API_PlayerFloat(i, ME00_Y, - API_RenderH/2.1 + i * 30)
 		
 		API_PlayerInt(i, ME00_SHIP, API_Recolor(i, API_LoadImage("ship.png")))
 		

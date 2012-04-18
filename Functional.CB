@@ -48,7 +48,6 @@ Function MAIN_Screen(Width = 0, Height = 0, Windowed = 0)
 	
 	SCREEN MAIN_ScreenW, MAIN_ScreenH, 0, Windowed
 	
-	//TODO: lataa aina tarvittavat kuvat ja äänet uudestaan
 EndFunction 
 
 
@@ -57,12 +56,9 @@ Function API_DrawScreen()
 
 	API_Timer = Timer() - MAIN_GameStartTimer 
 
-	//TODO: Virheilmoitukset jotka ei kaada koko ohjelmaa
-	
-	//TODO: Käyttöliittymäkomponentit
-	
 	DrawToWorld OFF, OFF, OFF
 	
+	//Käyttöliittymäkomponentit
 	MAIN_DrawWidgets(1)
 	
 	//TODO: Simuloi hiirtä kokoruudulla
@@ -88,7 +84,7 @@ Function API_DrawScreen()
 		Next y
 	EndIf
 	
-	//TODO: Pause
+	//Menu
 	If KeyHit(1) Then API_Menu()
 	
 	SetWindow "FPS: " + FPS()+" Running game: "+MAIN_RunningGameID
@@ -100,7 +96,6 @@ EndFunction
 //Keskeyttää pelin ja antaa:
 // TODO: - muokata näppäimiä 
 // TODO: - lisätä pelaajia
-// TODO: - lopettaa pelin
 // TODO: - käynnistää pelin alusta
 Function API_Menu()
 
@@ -113,16 +108,14 @@ Function API_Menu()
 	ClearKeys
 	ClearMouse 
 	
-	boxX = API_RenderW/4
-	boxY = float(API_RenderH)*(1.5/4.0)
-	
-	boxW = API_RenderW/2
-	boxH = API_RenderH/4
-	
-	titleHeight = 20
-	buttonHeight = 20
-	
-	bezel = 2
+	listData = API_WidgetListItemData("Lopeta minipeli,Aloita minipeli alusta,Lisää uusi pelaaja,Muokkaa pelaajan näppäimiä","")
+	listTemplate = API_WidgetListTemplate(2,2, 0, 0 ,API_RenderW/2,20)
+	list = API_WidgetList(listData, listTemplate, API_ORIENTATION_VERTICAL, API_POSITION_CENTER)
+
+	If MAIN_RunningGameID = "" Then 
+		API_ToggleWidget(API_GetListitem(list, 0),0)
+		API_ToggleWidget(API_GetListitem(list, 1),0)
+	EndIf 
 	
 	Repeat
 	
@@ -131,42 +124,37 @@ Function API_Menu()
 		Cls
 			
 		DrawImage pauseImage,0,0
-			
-		Color cbblack 
-		
-		Box boxX, boxY, boxW, boxH,1
-		
-		Color 215,215,215
-		
-		Box boxX + bezel, boxY  + bezel, boxW - bezel * 2, boxH - bezel * 2, 0
-		
-		Color 255,255,255
-		
-		Text boxX + bezel * 2, boxY + bezel * 2 ,"Menu"
-		
-		Color 192,192,192
-		
-		If  MAIN_RunningGameID <> "" Then 
-		
-			If API_MouseInBox(boxX + bezel * 3, boxY  + bezel + titleHeight, boxW - bezel * 6, buttonHeight)Then
 
-				Color 255,255,255
+		For i = 0 To 3 
+		
+			listItem = API_GetListitem(list, i)
 			
-				if MouseHit(1) Then
+			If API_MouseOnWidget(listItem) And MouseHit(1) Then 
+			
+				//lopeta peli
+				If i = 0  Then
 					MAIN_Stop()
 					MAIN_SelectGame()
+				ElseIf i = 1  Then
+					id$ = MAIN_RunningGameID 
+					MAIN_Stop()
+					MAIN_Start(id$ ,MAIN_GameData)
 				EndIf 
+				
 			EndIf 
 		
-			Box boxX + bezel * 3, boxY  + bezel + titleHeight, boxW - bezel * 6, buttonHeight, 0
-			
-			Text boxX + bezel * 4, boxY  + bezel * 2 + titleHeight ,"Lopeta minipeli"
-			
-		EndIf 
+		Next i
+
+		
+		
+		MAIN_DrawWidgets(1)
 		
 		DrawScreen 
 		
 	Until KeyHit(1)
+	
+	
+	MAIN_DeleteWidget(list)
 	
 	ClearKeys
 	ClearMouse 
