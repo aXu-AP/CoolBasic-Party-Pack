@@ -1,0 +1,30 @@
+//Tulostaa muistipalan sisällön
+Function LIB_PrintMemBlockData(mem, format$) 
+
+	l = MEMBlockSize(mem)
+	
+	pointer = 0
+	
+	While pointer < l
+
+		For i=1 To Len(format$)
+		
+			char$ = Mid(format$,i,1)
+			
+			If char$ = "I" Or char$ = "i" Then 
+				Print "@"+pointer+" Int   : "+PeekInt(mem,pointer)
+				pointer = pointer + 4
+			ElseIf char$ = "F" Or char$ = "f" Then 
+				Print "@"+pointer+" Float : "+PeekFloat(mem,pointer)
+				pointer = pointer + 4
+			EndIf 
+			
+			If pointer > l Then Exit 
+		
+		Next i
+	
+	Wend
+	
+	WaitKey 
+
+End Function 

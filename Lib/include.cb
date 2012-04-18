@@ -1,3 +1,4 @@
 
 //Lis‰‰ k‰ytett‰v‰t kirjaston koodit
 Include "Lib/cbSDKExplodeImage.cb"		
+Include "Lib/PrintMemBlockData.cb"	

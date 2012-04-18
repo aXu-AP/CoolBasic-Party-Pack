@@ -106,8 +106,9 @@ Function MAIN_SelectGame()
 	marginSmall = 2
 	logoSize = 100
 	rowHeight = 20 
-	
+
 	Repeat
+
 		Text marginBig,marginBig,"Pelikokoelmassa on seuraavat pelit: "
 	
 		gameCount = 0
@@ -158,6 +159,7 @@ Function MAIN_SelectGame()
 			Text 10, 260 + mediaCount * 15, iM\FileName
 		Next iM
 		Text 0, 260, "Ladattua mediaa: " + mediaCount
+
 		
 		API_DrawScreen()
 	Forever
