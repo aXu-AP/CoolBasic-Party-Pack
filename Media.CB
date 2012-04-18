@@ -382,15 +382,18 @@ EndFunction
 
 //Korvaa LoadFont
 Function API_LoadFont(FontName$, Size = 13, Bold = 0, Italic = 0, Underline = 0)
+
+	FileName$ = FontName + Size + Bold + Italic + Underline
+	
 	For iM.MAIN_Media = Each MAIN_Media
-		If FontName = iM\FileName And iM\MediaType = MAIN_Font Then
+		If FileName$  = iM\FileName And iM\MediaType = MAIN_Font Then
 			Return iM\Media
 		EndIf
 	Next iM
 	
 	iM.MAIN_Media = New(MAIN_Media)
 	iM\MediaType = MAIN_Font
-	iM\FileName = FontName + Size + Bold + Italic + Underline
+	iM\FileName = FileName$
 	iM\Media = LoadFont(FontName, Size, Bold, Italic, Underline)
 	
 	Return iM\Media

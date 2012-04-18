@@ -24,7 +24,8 @@ EndType
 
 
 //Lisää pelin pelikokoelmaan. Lisätiedot luetaan gamedata.ini tiedostosta
-Function API_AddGame(ID$)
+//Koska pelien lisäys on automatisoitu, voidaan muuttaa API -> MAIN
+Function MAIN_AddGame(ID$)
 	If ID = "" Then MakeError "Pelillä ei ole tunnistetta!"
 	
 	//Tarkistetaan, ettei peliä ole vielä lisätty
@@ -250,6 +251,8 @@ Function MAIN_Start(ID$, GameData)
 	MAIN_GameData = GameData
 	API_ResetToDefaults()
 	MAIN_RunningGameID = ID$
+	MAIN_GameStartTimer = Timer()
+	API_Timer = 0
 	Include "Games\Start.cb"
 	MAIN_Stop()
 EndFunction

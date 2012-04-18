@@ -3,6 +3,10 @@ Global API_RenderW, API_RenderH, MAIN_RenderZoom
 Global MAIN_ScreenW, MAIN_ScreenH
 Global MAIN_MidImage, MAIN_FinImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
 
+// pausen ja ajastimien vaatima pelin sisäinen aika muuttuja
+Global MAIN_GameStartTimer, API_Timer
+
+
 // Vaihtaa renderöintiresoluutiota
 Function MAIN_Resolution(w, h)
 	API_RenderW = w
@@ -51,15 +55,15 @@ EndFunction
 //Piirtää ja skaalaa API_RenderW x API_RenderH kokoisen alueen ruudulta
 Function API_DrawScreen()
 
+	API_Timer = Timer() - MAIN_GameStartTimer 
+
 	//TODO: Virheilmoitukset jotka ei kaada koko ohjelmaa
-	
-	//TODO: Pause
 	
 	//TODO: Käyttöliittymäkomponentit
 	
 	DrawToWorld OFF, OFF, OFF
 	
-	MAIN_DrawWidgets()
+	MAIN_DrawWidgets(1)
 	
 	//TODO: Simuloi hiirtä kokoruudulla
 
@@ -84,10 +88,94 @@ Function API_DrawScreen()
 		Next y
 	EndIf
 	
-	SetWindow "FPS: " + FPS()
+	//TODO: Pause
+	If KeyHit(1) Then API_Menu()
+	
+	SetWindow "FPS: " + FPS()+" Running game: "+MAIN_RunningGameID
 	
 	DrawScreen
 EndFunction	
+
+
+//Keskeyttää pelin ja antaa:
+// TODO: - muokata näppäimiä 
+// TODO: - lisätä pelaajia
+// TODO: - lopettaa pelin
+// TODO: - käynnistää pelin alusta
+Function API_Menu()
+
+	pauseStartTime = Timer()
+
+	pauseImage = MakeImage (API_RenderW, API_RenderH)
+	
+	CopyBox 0,  0, API_RenderW, API_RenderH, 0, 0, SCREEN(), Image(pauseImage) 
+	
+	ClearKeys
+	ClearMouse 
+	
+	boxX = API_RenderW/4
+	boxY = float(API_RenderH)*(1.5/4.0)
+	
+	boxW = API_RenderW/2
+	boxH = API_RenderH/4
+	
+	titleHeight = 20
+	buttonHeight = 20
+	
+	bezel = 2
+	
+	Repeat
+	
+		DrawGame
+		
+		Cls
+			
+		DrawImage pauseImage,0,0
+			
+		Color cbblack 
+		
+		Box boxX, boxY, boxW, boxH,1
+		
+		Color 215,215,215
+		
+		Box boxX + bezel, boxY  + bezel, boxW - bezel * 2, boxH - bezel * 2, 0
+		
+		Color 255,255,255
+		
+		Text boxX + bezel * 2, boxY + bezel * 2 ,"Menu"
+		
+		Color 192,192,192
+		
+		If  MAIN_RunningGameID <> "" Then 
+		
+			If API_MouseInBox(boxX + bezel * 3, boxY  + bezel + titleHeight, boxW - bezel * 6, buttonHeight)Then
+
+				Color 255,255,255
+			
+				if MouseHit(1) Then
+					MAIN_Stop()
+					MAIN_SelectGame()
+				EndIf 
+			EndIf 
+		
+			Box boxX + bezel * 3, boxY  + bezel + titleHeight, boxW - bezel * 6, buttonHeight, 0
+			
+			Text boxX + bezel * 4, boxY  + bezel * 2 + titleHeight ,"Lopeta minipeli"
+			
+		EndIf 
+		
+		DrawScreen 
+		
+	Until KeyHit(1)
+	
+	ClearKeys
+	ClearMouse 
+	
+	DeleteImage pauseImage
+	 
+	MAIN_GameStartTimer = MAIN_GameStartTimer  + (Timer() - pauseStartTime)
+
+End Function 
 
 
 Function API_MakeError(message$,critical=0)
