@@ -1,7 +1,9 @@
 
 Const API_WIDGET_PLAYERSCORE = 1
 Const API_WIDGET_TIMER = 2
-Const MAIN_WIDGET_TYPES = 2
+Const API_WIDGET_LIST = 3
+Const API_WIDGET_LISTITEM = 4
+Const MAIN_WIDGET_TYPES = 4
 
 //oudot arvot ettei sekoitu ruutukoodinaattien kanssa
 Const API_POSITION_TOP 			= -1000000
@@ -14,18 +16,46 @@ Const API_POSITION_BOTTOMLEFT	= -1000006
 Const API_POSITION_BOTTOMRIGHT	= -1000007
 Const API_POSITION_CENTER		= -1000008
 
+Const API_ORIENTATION_HORIZONTAL = 0
+Const API_ORIENTATION_VERTICAL	 = 1
+
 Const API_WD_TIMER_START = 0
 Const API_WD_TIMER_TIME  = 1
+
+Const API_WD_LIST_ITEMS 			= 0
+Const API_WD_LIST_ORIENTATION 		= 1
+Const API_WD_LIST_VISIBLEITEMCOUNT 	= 2
+Const API_WD_LIST_LISTITEM_WIDTH 	= 3
+Const API_WD_LIST_LISTITEM_HEIGHT 	= 4
+
+Const API_WD_LISTITEM_LIST 			= 0
+Const API_WD_LISTITEM_TEXT 			= 1
+Const API_WD_LISTITEM_TEXT_X 		= 2
+Const API_WD_LISTITEM_TEXT_Y		= 3
+Const API_WD_LISTITEM_IMAGE			= 4
+Const API_WD_LISTITEM_IMAGE_X 		= 5
+Const API_WD_LISTITEM_IMAGE_Y		= 6
+
+Const MAIN_TEMPLATE_LISTITEM_TEXT_X 	= 0
+Const MAIN_TEMPLATE_LISTITEM_TEXT_Y 	= 1
+Const MAIN_TEMPLATE_LISTITEM_IMAGE_X 	= 2
+Const MAIN_TEMPLATE_LISTITEM_IMAGE_Y 	= 3
+Const MAIN_TEMPLATE_LISTITEM_WIDTH 		= 4
+Const MAIN_TEMPLATE_LISTITEM_HEIGHT 	= 5
+Const MAIN_TEMPLATE_LISTITEM_STYLE 		= 6
+
 
 Type MAIN_Widget
 	Field x
 	Field y
+	Field position
 	Field width
 	Field height
 	Field img
 	Field widgetType
 	Field visible
 	Field widgetData
+	Field hover
 EndType
 
 
@@ -40,6 +70,7 @@ Function API_AddWidget(widgetType,visible=1)
 		w\y = 0
 		w\widgetData = MakeMEMBlock(4)
 		w\visible = (visible = 1)
+		w\hover = 0
 	
 		If widgetType = API_WIDGET_PLAYERSCORE Then 
 		
@@ -50,10 +81,25 @@ Function API_AddWidget(widgetType,visible=1)
 		
 			w\width = 205
 			w\height = 40
+			
+
+		ElseIf widgetType = API_WIDGET_LIST Then
+		
+			// you should use API_WidgetList
+			
+			w\width = 200
+			w\height = API_RenderH
+
+		ElseIf widgetType = API_WIDGET_LISTITEM Then
+		
+			// you should use API_WidgetList
+			
+			w\width = 200
+			w\height = 20
 		
 		EndIf 
 		
-		w\img = API_MakeImage(w\width,w\height)
+		//w\img = API_MakeImage(w\width,w\height)
 		
 		Return ConvertToInteger(w)
 	
@@ -62,6 +108,220 @@ Function API_AddWidget(widgetType,visible=1)
 	Return 0
 
 EndFunction 
+
+//Luo ja palauttaa uuden lista templaten
+Function API_WidgetListTemplate(textX=2,textY=2,imageX=0,imageY=0,width=100,height=20,style=-1)
+	
+	template = MakeMEMBlock(7*4)
+	
+	MAIN_MemInt(template, MAIN_TEMPLATE_LISTITEM_TEXT_X, textX)
+	template = MAIN_MemChangedAddress
+	
+	MAIN_MemInt(template, MAIN_TEMPLATE_LISTITEM_TEXT_Y, textY)
+	template = MAIN_MemChangedAddress
+	
+	MAIN_MemInt(template, MAIN_TEMPLATE_LISTITEM_IMAGE_X, imageX)
+	template = MAIN_MemChangedAddress
+	
+	MAIN_MemInt(template, MAIN_TEMPLATE_LISTITEM_IMAGE_Y, imageY)
+	template = MAIN_MemChangedAddress
+	
+	MAIN_MemInt(template, MAIN_TEMPLATE_LISTITEM_WIDTH, width)
+	template = MAIN_MemChangedAddress
+	
+	MAIN_MemInt(template, MAIN_TEMPLATE_LISTITEM_HEIGHT, height)
+	template = MAIN_MemChangedAddress
+	
+	MAIN_MemInt(template, MAIN_TEMPLATE_LISTITEM_STYLE, style)
+	template = MAIN_MemChangedAddress
+	
+	Return template
+
+EndFunction 
+
+//Luo ja palauttaa uuden listadatan
+Function API_WidgetListItemData(txt$, images$="", separator$ = ",")
+
+	If Right(txt$,1) = separator$ Then txt$ = Left(txt$,Len(txt$)-1)
+	If Right(images$,1) = separator$ Then images$ = Left(images$,Len(images$)-1)
+	
+	listItemData = MakeMEMBlock(4)
+
+	listItemTexts = CountWords(txt$, separator$)
+	listItemImages = CountWords(images$, separator$)
+	
+	listItemAmount = Max(listItemImages,listItemTexts)
+
+	For i=1 To listItemAmount
+	
+		mem = MakeMEMBlock(8)
+		
+		If i <= listItemTexts Then 
+			word$ = GetWord(txt$,i,separator$)
+			MAIN_MemString(mem, API_WD_LISTITEM_TEXT, word$)
+		Else 
+			MAIN_MemString(mem, API_WD_LISTITEM_TEXT, "")
+		EndIf 
+		
+		mem = MAIN_MemChangedAddress
+		
+		If i <= listItemImages Then 
+			img = Int(GetWord(images$,i,separator$))
+			MAIN_MemInt(mem, API_WD_LISTITEM_IMAGE, img)
+		Else 
+			MAIN_MemInt(mem, API_WD_LISTITEM_IMAGE, 0)
+		EndIf 
+		
+		mem = MAIN_MemChangedAddress
+		
+		MAIN_MemInt(listItemData, (i-1), mem)
+		listItemData = MAIN_MemChangedAddress
+	
+	Next i
+	
+	//LIB_PrintMEMBlockData(listItemData,"2","ii","listitemData","Text Image")
+	
+	Return listItemData
+
+EndFunction 
+
+
+//Luo ja palauttaa uuden listawidgetin
+//poistaa annetut data ja template muistipalat
+Function API_WidgetList(listItemData, listItemTemplate, listOrientation, position, y = 0)
+
+	If listItemData <> 0 And listItemTemplate <> 0 Then 
+	 
+		listWidget = API_AddWidget(API_WIDGET_LIST)
+		
+		w.MAIN_Widget = ConvertToType(listWidget)
+		
+		w\position = position
+		w\y = y
+		
+		listItemDataSize = MEMBlockSize(listItemData)
+		
+		listItemTextX = MAIN_MemInt(listItemTemplate,MAIN_TEMPLATE_LISTITEM_TEXT_X)
+		listItemTemplate = MAIN_MemChangedAddress
+		
+		listItemTextY = MAIN_MemInt(listItemTemplate,MAIN_TEMPLATE_LISTITEM_TEXT_Y)
+		listItemTemplate = MAIN_MemChangedAddress
+		
+		listItemImageX = MAIN_MemInt(listItemTemplate,MAIN_TEMPLATE_LISTITEM_IMAGE_X)
+		listItemTemplate = MAIN_MemChangedAddress
+		
+		listItemImageY = MAIN_MemInt(listItemTemplate,MAIN_TEMPLATE_LISTITEM_IMAGE_Y)
+		listItemTemplate = MAIN_MemChangedAddress
+		
+		listItemWidth = MAIN_MemInt(listItemTemplate,MAIN_TEMPLATE_LISTITEM_WIDTH)
+		listItemTemplate = MAIN_MemChangedAddress
+		
+		listItemHeight = MAIN_MemInt(listItemTemplate,MAIN_TEMPLATE_LISTITEM_HEIGHT)
+		listItemTemplate = MAIN_MemChangedAddress
+		
+		DeleteMEMBlock listItemTemplate
+
+		
+		API_WidgetInt(listWidget,API_WD_LIST_LISTITEM_WIDTH,listItemWidth)
+		API_WidgetInt(listWidget,API_WD_LIST_LISTITEM_HEIGHT,listItemHeight)
+		API_WidgetInt(listWidget,API_WD_LIST_ORIENTATION,listOrientation)	
+		
+		listItems = MakeMEMBlock(listItemDataSize)
+		
+		For i=0 To listItemDataSize-1 Step 4
+		
+			listItem = PeekInt(listItemData,i)
+			
+			If listItem <> 0 Then 
+			
+				listItemWidget = API_AddWidget(API_WIDGET_LISTITEM)
+			
+				API_WidgetInt(listItemWidget,API_WD_LISTITEM_LIST,listWidget)
+				
+				w2.MAIN_Widget = ConvertToType(listItemWidget)
+				w2\height = listItemHeight
+				w2\width = listItemWidth
+			
+				st$ = MAIN_MemString(listItem, API_WD_LISTITEM_TEXT)
+				listItem = MAIN_MemChangedAddress
+				
+				img = MAIN_MemInt(listItem, API_WD_LISTITEM_IMAGE)
+				listItem = MAIN_MemChangedAddress
+			
+				API_WidgetString(listItemWidget, API_WD_LISTITEM_TEXT, st$)
+				API_WidgetInt(listItemWidget, API_WD_LISTITEM_TEXT_X, listItemTextX)
+				API_WidgetInt(listItemWidget, API_WD_LISTITEM_TEXT_Y, listItemTextY)
+			
+				API_WidgetInt(listItemWidget, API_WD_LISTITEM_IMAGE, img) 
+				API_WidgetInt(listItemWidget, API_WD_LISTITEM_IMAGE_X, listItemImageX)
+				API_WidgetInt(listItemWidget, API_WD_LISTITEM_IMAGE_Y, listItemImageY)
+				
+				DeleteMEMBlock listItem
+				
+				PokeInt listItems, i, listItemWidget
+			
+			EndIf  
+	
+		Next i
+		
+		DeleteMEMBlock listItemData
+		
+		API_WidgetInt(listWidget,API_WD_LIST_ITEMS,listItems)
+		
+		MAIN_UpdateWidget(listWidget)
+		
+		Return listWidget
+		
+	EndIf 
+	
+	Return 0
+
+EndFunction 
+
+Function API_GetListitem(listWidget, listItemNumber)
+
+	If listWidget <> 0 Then 
+	
+		w.MAIN_Widget = ConvertToType(listWidget)
+
+		If w <> NULL Then 
+				
+			listItems = API_WidgetInt(listWidget, API_WD_LIST_ITEMS)
+			
+			If listItems <> 0 Then 
+			
+				If listItemNumber * 4 < MEMBlockSize(listItems) Then Return PeekInt(listItems, listItemNumber * 4)
+			
+			EndIf 
+			
+		EndIf 
+	
+	EndIf 
+	
+	Return 0
+
+EndFunction 
+
+Function API_MouseOnWidget(widget)
+
+	If widget <> 0 Then 
+		w.MAIN_Widget = ConvertToType(widget)
+		If w <> NULL Then 
+			If w\visible Then 
+				mx = API_MouseX()
+				my = API_MouseY()
+				w\hover = (mx >= w\x And mx < w\x + w\width And my >= w\y And my < w\y + w\height)
+			Else 
+				w\hover = 0
+			EndIf 
+			
+			Return w\hover
+		EndIf
+	EndIf 
+	
+	Return 0
+EndFunction 
+
 
 //Asettaa tai palauttaa kokonaisluvun
 Function API_WidgetInt(widget, dataField, value$ = "NAN")
@@ -80,12 +340,53 @@ Function API_WidgetFloat(widget, dataField, value$ = "NAN")
 EndFunction
 
 //Asettaa tai palauttaa merkkijonon
-Function API_WidgetString(number, dataField, value$ = "TOIVOTAANett‰EItuleT÷RMƒYKSIƒt‰m‰nMERKKIJONONkanssa!!")
+Function API_WidgetString(widget, dataField, value$ = "TOIVOTAANett‰EItuleT÷RMƒYKSIƒt‰m‰nMERKKIJONONkanssa!!")
 	w.MAIN_Widget = ConvertToType(widget)
 	value$ = MAIN_MemString(w\widgetData, dataField, value$)
 	w\widgetData = MAIN_MemChangedAddress
 	Return value$
 EndFunction
+
+
+//Asettaa tai vaihtaa widgetin n‰kyvyyden
+Function API_ToggleWidget(widget, visible = -1)
+
+	If  widget <> 0  Then 
+	
+		w.MAIN_Widget = ConvertToType(widget)
+		
+		If  w <> NULL  Then
+		
+			wasVisible = w\visible
+		
+			If visible = -1 Then 
+				w\visible = Not w\visible
+			Else 
+				w\visible = (visible = 1)
+			EndIf 
+			
+			If wasVisible <> w\visible Then 
+			
+				If w\widgetType = API_WIDGET_LISTITEM Then 
+				
+					list = API_WidgetInt(widget, API_WD_LISTITEM_LIST)
+				
+					MAIN_UpdateWidget(list)
+					
+				ElseIf w\widgetType = API_WIDGET_LIST Then 
+					
+					MAIN_UpdateWidget(widget)
+				
+				EndIf 
+			
+			EndIf 
+		
+		EndIf  
+	
+	EndIf 
+
+EndFunction 
+
 
 //Asettaa annetun widgetin paikoilleen
 Function API_PositionWidget(widget, position = 0, y = 0)
@@ -97,6 +398,8 @@ Function API_PositionWidget(widget, position = 0, y = 0)
 		If ( w <> NULL ) Then
 		
 			If (position < API_POSITION_TOP+1 And y = 0)  Then 
+			
+				w\position = position
 			
 				If position = API_POSITION_TOP Then 
 				
@@ -147,6 +450,8 @@ Function API_PositionWidget(widget, position = 0, y = 0)
 			
 			Else 
 			
+				w\position = 0
+			
 				w\x = position
 				w\y = y
 			
@@ -164,9 +469,16 @@ Function MAIN_DrawWidgets(showAreas = 0)
 	fontNormal = API_LoadFont("Courier",12) 
 	
 	For w.MAIN_WIDGET = Each MAIN_Widget
-	
+
 		If w\visible = 1  Then 
-	
+		
+			If showAreas Then 
+				Color cbwhite
+				Box w\x,w\y,w\width,w\height,0
+			EndIf 
+			
+			widget = ConvertToInteger(w)
+		
 			If w\widgetType = API_WIDGET_PLAYERSCORE Then 
 			
 				If MAIN_PlayerAmount <> 0 Then 
@@ -224,8 +536,8 @@ Function MAIN_DrawWidgets(showAreas = 0)
 
 				Color cbwhite
 				
-				start = MAIN_MemInt(w\widgetData, API_WD_TIMER_START)
-				amount = MAIN_MemInt(w\widgetData, API_WD_TIMER_TIME)
+				start = API_WidgetInt(widget, API_WD_TIMER_START)
+				amount = API_WidgetInt(widget, API_WD_TIMER_TIME)
 				
 				timeLeft = start + amount - API_Timer
 				
@@ -252,13 +564,53 @@ Function MAIN_DrawWidgets(showAreas = 0)
 					EndIf 
 					
 				EndIf 
+				
+			ElseIf  w\widgetType = API_WIDGET_LIST Then 	
+			
+				Color 0,0,0
+				
+				Box w\x, w\y, w\width, w\height
+				
+			ElseIf  w\widgetType = API_WIDGET_LISTITEM Then 
+			
+				SetFont fontNormal
+
+				Color 128,128,128
+				
+				If w\hover Then Color cbwhite	
+				
+				Box w\x, w\y, w\width, w\height,0	
+				
+				txt$ = API_WidgetString(widget, API_WD_LISTITEM_TEXT)	
+					
+				If txt$ <> "" Then 
+				
+					x = API_WidgetInt(widget, API_WD_LISTITEM_TEXT_X)
+					y = API_WidgetInt(widget, API_WD_LISTITEM_TEXT_Y)
+					
+					//TODO: Vaakasuuntaisen listan koon muutokset 
+					
+					txtHeight = LIB_RowText(txt$, w\x + x, w\y + y, w\x + w\width - x)
+				
+					If ( txtHeight + y > w\height ) Then 
+						MAIN_UpdateWidget(ConvertToInteger(w), -1, txtHeight + y)
+					EndIf 
+
+				EndIf 
+				
+				img = API_WidgetInt(widget, API_WD_LISTITEM_IMAGE)	
+					
+				If img <> 0 Then 
+				
+					x = API_WidgetInt(widget, API_WD_LISTITEM_IMAGE_X)
+					y = API_WidgetInt(widget, API_WD_LISTITEM_IMAGE_Y)
+					
+					DrawImage img, w\x + x, w\y + y
+
+				EndIf 
 			
 			EndIf 
 			
-			If showAreas Then 
-				Color cbwhite
-				Box w\x,w\y,w\width,w\height,0
-			EndIf 
 		
 		EndIf 
 		
@@ -268,20 +620,211 @@ Function MAIN_DrawWidgets(showAreas = 0)
 
 EndFunction 
 
+
+//P‰ivitt‰‰ listan esineet ja listan
+Function MAIN_UpdateWidget(widget,width = -1, height = -1)
+
+	If widget <> 0 Then 
+	
+		w.MAIN_Widget = ConvertToType(widget)
+		
+		If w <> NULL Then 
+	
+			oldWidth = w\width
+			oldHeight = w\height
+		
+			If w\widgetType = API_WIDGET_LIST Then 
+			
+				listItems = API_WidgetInt(widget, API_WD_LIST_ITEMS)
+				
+				If listItems Then 
+					
+					visibleCount = 0
+					visibleWidth = 0
+					visibleHeight = 0
+					
+					For i=0 To MEMBlockSize(listItems)-1 Step 4
+			
+						listItem = PeekInt(listItems,i)
+	
+						w2.MAIN_Widget = ConvertToType(listItem)
+						
+						If w\visible And w2\visible Then
+							visibleCount = visibleCount + 1	
+							visibleWidth  = visibleWidth  + w2\width
+							visibleHeight = visibleHeight + w2\height
+							
+						Else
+							w2\visible = 0
+						EndIf 
+	
+					Next i
+					
+					API_WidgetInt(widget, API_WD_LIST_VISIBLEITEMCOUNT,visibleCount)
+					
+					If visibleCount = 0 Then w\visible = 0
+					
+					If  w\visible Then 
+					
+						listItemWidth = API_WidgetInt(widget, API_WD_LIST_LISTITEM_WIDTH)
+						listItemHeight = API_WidgetInt(widget, API_WD_LIST_LISTITEM_HEIGHT)
+						
+						//selvit‰ uusi koko
+						
+						listOrientation = API_WidgetInt(widget, API_WD_LIST_ORIENTATION)
+						
+						If listOrientation = API_ORIENTATION_HORIZONTAL Then 
+						
+							w\width = visibleWidth
+							w\height = listItemHeight
+							
+						ElseIf listOrientation = API_ORIENTATION_VERTICAL Then  
+						
+							w\width =  listItemWidth
+							w\height = visibleHeight
+							
+						EndIf 
+	
+						//siirr‰ lista paikoilleen jos koko muuttunut
+						
+						If w\width <> oldWidth Or w\height <> oldHeight Then 
+							If w\position <> 0 Then API_PositionWidget(widget,w\position) Else API_PositionWidget(widget, w\x, w\y)
+						EndIf 
+						
+						visibleCount = 0
+						visibleWidth = 0
+						visibleHeight = 0
+						
+						
+						// p‰ivit‰ listitemit
+						For i=0 To MEMBlockSize(listItems)-1 Step 4
+				
+							listItem = PeekInt(listItems,i)
+		
+							w2.MAIN_Widget = ConvertToType(listItem)
+							
+							If w2\visible Then
+	
+								If listOrientation = API_ORIENTATION_HORIZONTAL Then 
+								
+									w2\x = w\x + visibleWidth
+									w2\y = w\y
+									//w2\width = listItemWidth
+									w2\height = listItemHeight
+									
+								ElseIf listOrientation = API_ORIENTATION_VERTICAL Then  
+								
+									w2\x = w\x 
+									w2\y = w\y + visibleHeight
+									w2\width = listItemWidth
+									//w2\height = listItemHeight
+									
+								EndIf
+								
+								visibleWidth  = visibleWidth  + w2\width
+								visibleHeight = visibleHeight + w2\height
+								
+								
+								visibleCount = visibleCount + 1
+		
+							EndIf  						
+		
+						Next i
+	
+					EndIf
+					
+				EndIf 
+				
+				
+			ElseIf w\widgetType = API_WIDGET_LISTITEM
+			
+				list = API_WidgetInt(widget, API_WD_LISTITEM_LIST)
+				
+				If list Then 
+				
+					listOrientation = API_WidgetInt(list, API_WD_LIST_ORIENTATION)
+					
+					If width > 0 Then w\width = width 
+					If height > 0 Then w\height = height 
+					
+					If listOrientation = API_ORIENTATION_HORIZONTAL Then 
+					
+						If height > 0 Then API_WidgetInt(list, API_WD_LIST_LISTITEM_HEIGHT, height)
+						
+					ElseIf listOrientation = API_ORIENTATION_VERTICAL Then  
+					
+						If width > 0 Then API_WidgetInt(list, API_WD_LIST_LISTITEM_WIDTH, width)
+	
+					EndIf 
+				
+					MAIN_UpdateWidget(list)
+				
+				EndIf 
+				
+			Else 
+			
+				If ( w\visible)  Then 
+			
+					If width > 0 Then w\width = width
+					If height > 0 Then w\height = height
+					
+					If w\width <> oldWidth Or w\height <> oldHeight Then 
+						If w\position <> 0 Then API_PositionWidget(widget,w\position) Else API_PositionWidget(widget, w\x, w\y)
+					EndIf 
+				
+				EndIf 
+			
+			EndIf 
+
+		EndIf 
+
+		
+	EndIf 
+
+EndFunction 
+
+//Poistaa widgetin
+Function MAIN_DeleteWidget(widget)
+
+	If widget <> 0 Then 
+	
+		w.MAIN_Widget = ConvertToType(widget)
+		
+		If w <> NULL Then 
+		
+			If w\widgetType = API_WIDGET_LIST Then 
+				
+				listItems = API_WidgetInt(widget, API_WD_LIST_ITEMS)
+				
+				If listItems <> 0 Then 
+	
+					For i=0 To MEMBlockSize(listItems)-1 Step 4
+				
+						listItem = PeekInt(listItems,i)
+	
+						MAIN_DeleteWidget(listItem)
+					
+					Next i
+					
+					DeleteMEMBlock listItems
+				
+				EndIf 
+
+			EndIf 
+			
+			If w\widgetData <> 0 Then DeleteMEMBlock w\widgetData
+			
+			Delete w
+			
+		EndIf 
+	EndIf
+
+End Function 
+
 //Poistaa kaikki widgetit
 Function MAIN_DeleteWidgets()
-
-	//TODO: Erikoisk‰sittelyt widgeteille joilla ON omassa datassa muistipaloja
-
 	For w.MAIN_WIDGET = Each MAIN_Widget
-	
-		If( w\widgetData <> 0 )  Then 
-			DeleteMEMBlock w\widgetData
-		EndIf 
-		
-		Delete w
-	
+		MAIN_DeleteWidget(ConvertToInteger(w))
 	Next w
-
 End Function 
 

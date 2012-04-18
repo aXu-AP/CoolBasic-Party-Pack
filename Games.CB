@@ -102,63 +102,66 @@ Function MAIN_SelectGame()
 	API_PlayerSetup(GameData, "ALLvsALL")
 	API_Difficulty(GameData, 2)
 	
-	marginBig = 20
-	marginSmall = 2
-	logoSize = 100
-	rowHeight = 20 
 	
+	
+	games$ = ""
+	images$ = ""
+	
+	For iG.MAIN_Game = Each MAIN_Game
+
+		If (MAIN_GameCompatible(ConvertToInteger(iG), GameData)) Then 
+		
+			info$ = "Lis‰tiedot: "
+			If iG\SupportAI Then info = info + "tietokonevastustajat, "
+			If iG\SupportHandicap Then info = info + "tasoitus, "
+			If iG\Difficulty = 0 Then info = info + "vaikeustason valinta."
+			If iG\Difficulty = 1 Then info = info + "vaikeustaso helppo."
+			If iG\Difficulty = 2 Then info = info + "vaikeustaso normaali."
+			If iG\Difficulty = 3 Then info = info + "vaikeustaso vaikea."
+		
+			games$ = games$ + iG\ID + " " + iG\Name + "| " + iG\Desc + "| " + iG\Controls + "| " + iG\PlayerSetup + " " + iG\MaxPlayers + "| "+info$+"ß"
+			images$ = images$ + iG\Logo+"ß"
+	
+		EndIf 
+	
+	Next iG
+
+	listData = API_WidgetListItemData(games$,images$,"ß")
+	listTemplate = API_WidgetListTemplate(110, 5, 5, 5, API_RenderW, 110)
+	list = API_WidgetList(listData, listTemplate, API_ORIENTATION_VERTICAL, 0,50) 
+
 	Repeat
-		Text marginBig,marginBig,"Pelikokoelmassa on seuraavat pelit: "
-	
-		gameCount = 0
-		
-		mx = API_MouseX()
-		my = API_MouseY()
-		
+
 		DrawGame
 		
-		Color 255, 255, 255
+		Color cbwhite
 		
+		Text marginBig,marginBig,"Pelikokoelmassa ON seuraavat pelit: "
+		
+		i = 0
 		For iG.MAIN_Game = Each MAIN_Game
 
 			If (MAIN_GameCompatible(ConvertToInteger(iG), GameData)) Then 
 			
-				y = marginBig + rowHeight + gameCount * (100 + marginBig/2)
-	
-				//onko hiiri pelin p‰‰ll‰
-				If( API_MouseInBox(marginBig-marginSmall,y-marginSmall,API_RenderW-marginBig*2,logoSize+marginSmall*2)) Then
-					If( MouseHit(1)) Then MAIN_Start(iG\ID, GameData)
-					Box marginBig-marginSmall,y-marginSmall,API_RenderW-marginBig*2,logoSize+marginSmall*2,0
-					
-					info$ = "Lis‰tiedot: "
-					If iG\SupportAI Then info = info + "tietokonevastustajat, "
-					If iG\SupportHandicap Then info = info + "tasoitus, "
-					If iG\Difficulty = 0 Then info = info + "vaikeustason valinta."
-					If iG\Difficulty = 1 Then info = info + "vaikeustaso helppo."
-					If iG\Difficulty = 2 Then info = info + "vaikeustaso normaali."
-					If iG\Difficulty = 3 Then info = info + "vaikeustaso vaikea."
-					Text marginSmall, API_RenderH - marginSmall - 12, info$
-				EndIf 
-	
-				DrawImage iG\Logo ,marginBig, y
-			
-				Text marginBig*3/2+logoSize,y+rowHeight,iG\ID + " " + iG\Name
-				Text marginBig*3/2+logoSize,y+rowHeight*2,iG\Desc
-				Text marginBig*3/2+logoSize,y+rowHeight*3,iG\Controls
-				Text marginBig*3/2+logoSize,y+rowHeight*4,iG\PlayerSetup + " " + iG\MaxPlayers
+				listItem = API_GetListitem(list, i)
 				
-				gameCount = gameCount + 1
-			
+				If API_MouseOnWidget(listItem) Then 
+				
+					If MouseHit(1) Then Return MAIN_Start(iG\ID, GameData)
+					
+				EndIf 
 			EndIf 
+			
+			i=i+1
 		Next iG
 		
 		mediaCount = 0
 		For iM.MAIN_Media = Each MAIN_Media
 			mediaCount = mediaCount + 1
-			Text 10, 260 + mediaCount * 15, iM\FileName
+			Text 10, 300 + mediaCount * 15, iM\FileName
 		Next iM
-		Text 0, 260, "Ladattua mediaa: " + mediaCount
-		
+		Text 0, 300, "Ladattua mediaa: " + mediaCount
+
 		API_DrawScreen()
 	Forever
 EndFunction 
@@ -248,6 +251,7 @@ EndFunction
 
 //Aloittaa pelin
 Function MAIN_Start(ID$, GameData)
+	MAIN_DeleteWidgets()
 	MAIN_GameData = GameData
 	API_ResetToDefaults()
 	MAIN_RunningGameID = ID$
@@ -255,6 +259,7 @@ Function MAIN_Start(ID$, GameData)
 	API_Timer = 0
 	Include "Games\Start.cb"
 	MAIN_Stop()
+	MAIN_SelectGame()
 EndFunction
 
 

@@ -1,0 +1,47 @@
+//rivitt‰‰ teksti‰ annetulle alueelle
+//palauttaa tekstin korkeuden pikselein‰
+//rivinvaihtomerkkin‰ |
+Function LIB_RowText(st$,x,y,x2,change$ ="|")
+	rowHeight = TextHeight("I") 
+	
+	startY = y
+
+    If x + TextWidth(st$) < x2 And InStr(st$, change$) = 0 Then
+		Text x,y,st$
+    Else
+        For i = 1 To CountWords(st$)
+            word$ = GetWord(st$,i)
+			l = Len(word$)
+			changePos = InStr(word$, change$)
+			//Print word$ : WaitKey 
+			
+			isFirst = (changePos = 1 ) 
+			isLast = (changePos = l  And l > 1)
+			rowEnds = x + TextWidth(sentence$) + TextWidth(word$) > x2
+			
+			If isFirst Then 
+				sentence$ = sentence$ + word$ = Mid(word$,2)+" "
+				y = y + rowHeight
+			ElseIf isLast Then
+				sentence$ = sentence$ + Mid(word$,1,l-1)
+				Text x, y, sentence$
+                sentence$ = ""
+                y = y + rowHeight
+			ElseIf rowEnds Then 
+                Text x, y, sentence$
+                sentence$ = ""
+                y = y + rowHeight
+			Else 
+				sentence$ = sentence$ + word$ + " "
+            EndIf
+
+        Next i
+        If sentence$ <> "" Then
+            Text x,y,sentence$
+			Return Int(y-startY+rowHeight)
+        EndIf
+    EndIf
+
+	Return Int(y-startY+rowHeight)
+	
+End Function
