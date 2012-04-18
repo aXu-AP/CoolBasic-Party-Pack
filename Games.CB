@@ -24,7 +24,8 @@ EndType
 
 
 //Lisää pelin pelikokoelmaan. Lisätiedot luetaan gamedata.ini tiedostosta
-Function API_AddGame(ID$)
+//Koska pelien lisäys on automatisoitu, voidaan muuttaa API -> MAIN
+Function MAIN_AddGame(ID$)
 	If ID = "" Then MakeError "Pelillä ei ole tunnistetta!"
 	
 	//Tarkistetaan, ettei peliä ole vielä lisätty

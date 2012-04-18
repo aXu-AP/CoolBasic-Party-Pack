@@ -15,12 +15,10 @@ MAIN_AddPlayer("Pelle pelaaja", 0, 255, 0)
 MAIN_AddPlayer("Fiia fr‰g‰‰j‰", 0, 0, 255)
 MAIN_AddPlayer("Jonne E. S.", 255, 0, 0)
 MAIN_AddPlayer("Ran Dom", 255, 255, 0)
-
 MAIN_AddPlayer("Calle Cheatteri", cbBlue)
 MAIN_AddPlayer("Ninni n‰pp‰in", cbWhite)
 MAIN_AddPlayer("Polle pointsi", cbBlackSkin)
 MAIN_AddPlayer("Victor voittaja", cbDarkGreen)
-
 
 MAIN_LoadKeys()
 MAIN_SelectGame()
