@@ -1,6 +1,3 @@
-//Lis‰t‰‰n peli pelikokoelmaan nimell‰ TestGame (nime‰ tarvitaan muiden tietojen hakemiseen)
-API_AddGame("ME00")
-
 Const ME00_X = 0
 Const ME00_Y = 1
 Const ME00_SHIP = 2

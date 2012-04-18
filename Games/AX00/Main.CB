@@ -1,6 +1,3 @@
-//Lis‰t‰‰n peli pelikokoelmaan nimell‰ TestGame (nime‰ tarvitaan muiden tietojen hakemiseen)
-API_AddGame("AX00")
-
 Const AX00_Ukko = 0
 Const AX00_Teksti = 1
 
