@@ -1,0 +1,261 @@
+
+Const API_WIDGET_PLAYERSCORE = 1
+Const API_WIDGET_TIMER = 2
+Const MAIN_WIDGET_TYPES = 2
+
+//oudot arvot ettei sekoitu ruutukoodinaattien kanssa
+Const API_POSITION_TOP 			= -1000000
+Const API_POSITION_BOTTOM 		= -1000001
+Const API_POSITION_LEFT 		= -1000002
+Const API_POSITION_RIGHT 		= -1000003
+Const API_POSITION_TOPLEFT		= -1000004
+Const API_POSITION_TOPRIGHT 	= -1000005
+Const API_POSITION_BOTTOMLEFT	= -1000006
+Const API_POSITION_BOTTOMRIGHT	= -1000007
+Const API_POSITION_CENTER		= -1000008
+
+Const API_WD_TIMER_START = 0
+Const API_WD_TIMER_TIME  = 1
+
+Type MAIN_Widget
+	Field x
+	Field y
+	Field width
+	Field height
+	Field img
+	Field widgetType
+	Field visible
+	Field widgetData
+EndType
+
+
+//Lisää widgetin annetulla tyypillä ja asettaa sen näkyvyyden
+Function API_AddWidget(widgetType,visible=1)
+
+	If (widgetType > 0  And widgetType <= MAIN_WIDGET_TYPES) Then 
+	
+		w.MAIN_Widget = New(MAIN_Widget)
+		w\widgetType = widgetType
+		w\x = 0
+		w\y = 0
+		w\widgetData = MakeMEMBlock(4)
+		w\visible = (visible = 1)
+	
+		If widgetType = API_WIDGET_PLAYERSCORE Then 
+		
+			w\width = API_RenderW
+			w\height = 40
+			
+		ElseIf  widgetType = API_WIDGET_TIMER Then 
+		
+			w\width = 150
+			w\height = 60
+		
+		EndIf 
+		
+		w\img = API_MakeImage(w\width,w\height)
+		
+		Return ConvertToInteger(w)
+	
+	EndIf 
+	
+	Return 0
+
+EndFunction 
+
+//Asettaa tai palauttaa kokonaisluvun
+Function API_WidgetInt(widget, dataField, value$ = "NAN")
+	w.MAIN_Widget = ConvertToType(widget)
+	iValue = MAIN_MemInt(w\widgetData, dataField, value$)
+	w\widgetData = MAIN_MemChangedAddress
+	Return iValue
+EndFunction
+
+//Asettaa tai palauttaa liukuluvun
+Function API_WidgetFloat(widget, dataField, value$ = "NAN")
+	w.MAIN_Widget = ConvertToType(widget)
+	fValue# = MAIN_MemFloat(w\widgetData, dataField, value$)
+	w\widgetData = MAIN_MemChangedAddress
+	Return fValue#
+EndFunction
+
+//Asettaa tai palauttaa merkkijonon
+Function API_WidgetString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!")
+	w.MAIN_Widget = ConvertToType(widget)
+	value$ = MAIN_MemFloat(w\widgetData, dataField, value$)
+	w\widgetData = MAIN_MemChangedAddress
+	Return value$
+EndFunction
+
+//Asettaa annetun widgetin paikoilleen
+Function API_PositionWidget(widget, position = 0, y = 0)
+
+	If ( widget <> 0 ) Then 
+	
+		w.MAIN_Widget = ConvertToType(widget)
+		
+		If ( w <> NULL ) Then
+		
+			If (position < API_POSITION_TOP+1 And y = 0)  Then 
+			
+				If position = API_POSITION_TOP Then 
+				
+					w\x = API_RenderW/2 - w\width/2 
+					w\y = 0
+				
+				ElseIf position = API_POSITION_BOTTOM Then 
+				
+					w\x = API_RenderW/2 - w\width/2 
+					w\y = API_RenderH - w\height
+					
+				ElseIf position = API_POSITION_LEFT Then 
+				
+					w\x = 0
+					w\y = API_RenderH/2 - w\height/2 
+				
+				ElseIf position = API_POSITION_RIGHT Then 
+				
+					w\x = API_RenderW - w\width
+					w\y = API_RenderH/2 - w\height/2 
+				
+				ElseIf position = API_POSITION_TOPLEFT Then 
+				
+					w\x = 0
+					w\y = 0
+			
+				ElseIf position = API_POSITION_TOPRIGHT Then 
+				
+					w\x = API_RenderW - w\width 
+					w\y = 0
+				
+				ElseIf position = API_POSITION_BOTTOMLEFT Then 
+				
+					w\x = 0
+					w\y = API_RenderH - w\height
+					
+				ElseIf position = API_POSITION_BOTTOMRIGHT Then 
+				
+					w\x = API_RenderW - w\width 
+					w\y = API_RenderH - w\height
+					
+				ElseIf position = API_POSITION_CENTER Then 
+				
+					w\x = API_RenderW/2 - w\width/2 
+					w\y = API_RenderH/2 - w\height/2
+					
+				EndIf
+			
+			Else 
+			
+				w\x = position
+				w\y = y
+			
+			EndIf  
+		
+		EndIf  
+	
+	EndIf 
+
+EndFunction 
+
+//Piirtää näkyvät widgetit
+Function MAIN_DrawWidgets()
+
+	For w.MAIN_WIDGET = Each MAIN_Widget
+	
+		If w\visible = 1  Then 
+	
+			If w\widgetType = API_WIDGET_PLAYERSCORE Then 
+
+				If MAIN_PlayerAmount <> 0 Then 
+				
+					widthPerPlayer = w\width / MAIN_PlayerAmount
+					
+					number = 0
+					
+					While number<MAIN_PlayerAmount 
+
+						player = MAIN_PlayerData(number)
+						
+						If player <> 0 Then 
+					
+							Color API_PlayerColor(number, RED), API_PlayerColor(number, GREEN), API_PlayerColor(number, BLUE)
+	
+							Text w\x + widthPerPlayer * number, w\y, API_PlayerName(number)
+							Text w\x + widthPerPlayer * number, w\y + 20, API_PlayerPoints(number)
+						
+						EndIf 
+						
+						number = number + 1
+						
+					Wend 
+
+				
+				EndIf 
+				
+				Color cbwhite
+				
+				Box w\x,w\y,w\width,w\height,0
+		
+				
+			ElseIf  w\widgetType = API_WIDGET_TIMER Then 
+
+				Color cbwhite
+				
+				start = MAIN_MemInt(w\widgetData, API_WD_TIMER_START)
+				amount = MAIN_MemInt(w\widgetData, API_WD_TIMER_TIME)
+				
+				timeLeft = start + amount - Timer()
+				
+				If timeLeft Then 
+				
+					seconds$ = (timeLeft / 1000)
+					milliseconds$ = timeLeft - int(seconds$) * 1000
+					
+					If Len(seconds$) =  1 Then seconds$ = "0"+seconds$
+					
+					For i = 0 To 2-Len(milliseconds$)
+					
+						milliseconds$ = "0"+milliseconds$ 
+						
+					Next i
+
+					Text w\x,w\y,seconds$+":"+milliseconds$
+					
+				Else 
+					Text w\x,w\y,"00:000"				
+				EndIf 
+				
+				Box w\x,w\y,w\width,w\height,0
+
+			Else
+			
+				Color cbwhite
+			
+				Box w\x,w\y,w\width,w\height,0
+			
+			EndIf 
+		
+		EndIf 
+		
+	Next w
+
+EndFunction 
+
+//Poistaa kaikki widgetit
+Function MAIN_DeleteWidgets()
+
+	//TODO: Erikoiskäsittelyt widgeteille joilla ON omassa datassa muistipaloja
+
+	For w.MAIN_WIDGET = Each MAIN_Widget
+	
+		If( w\widgetData <> 0 )  Then 
+			DeleteMEMBlock w\widgetData
+		EndIf 
+		
+		Delete w
+	
+	Next w
+
+End Function 
+

@@ -1,0 +1,65 @@
+//Hakee pelit Games kansiosta ja kirjoittaa sopivat include tiedostot
+Type game
+	Field id$
+End Type
+
+GetGames("Games","Start.cb","Stop.cb","Include.cb")
+
+Function GetGames(subdir$,startfile$,endfile$,includefile$)
+
+	cd$ = CurrentDir()
+
+	If (  IsDirectory(subdir$) ) Then ChDir subdir$
+
+	StartSearch
+	
+		Repeat
+		
+			file$=FindFile()
+			
+			If(  IsDirectory(file$) And file$ <> "." And file$ <> "..") Then
+			
+				If( FileExists(file$+"\gameinfo.ini") And FileExists(file$+"\logo.png") And FileExists(file$+"\main.cb") ) Then
+			
+					g.game = New(game)
+					g\id = file$
+				
+				EndIf 
+			
+			EndIf 
+			
+		Until file$ = ""
+	
+	'End search 
+	EndSearch
+	
+	f =	OpenToWrite(startfile$)
+	WriteLine f,"Select ID$"
+	For g.game = Each game
+		WriteLine f,"    Case "+Chr(34)+g\id+Chr(34)
+		WriteLine f,"        "+g\id+"_Game()"
+	Next g
+	WriteLine f,"Default"
+	WriteLine f,"    MakeError "+Chr(34)+"Peliä "+Chr(34)+" + ID$ + "+Chr(34)+" ei löytynyt!"+Chr(34)
+	WriteLine f,"EndSelect"
+	CloseFile f
+	
+	f =	OpenToWrite(endfile$)
+	WriteLine f,"Select ID$"
+	For g.game = Each game
+		WriteLine f,"    Case "+Chr(34)+g\id+Chr(34)
+		WriteLine f,"        "+g\id+"_End()"
+	Next g
+	WriteLine f,"Default"
+	WriteLine f,"    //Game is Not running"
+	WriteLine f,"EndSelect"
+	CloseFile f
+	
+	f =	OpenToWrite(includefile$)
+	For g.game = Each game
+		WriteLine f,"Include "+Chr(34)+"Games\"+g\id+"\Main.cb"+Chr(34)
+		WriteLine f,"API_AddGame("+Chr(34)+g\id+Chr(34)+")"
+	Next g
+	CloseFile f
+		 
+EndFunction
