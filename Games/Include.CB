@@ -1,4 +1,4 @@
 Include "Games\AX00\Main.cb"
-API_AddGame("AX00")
+MAIN_AddGame("AX00")
 Include "Games\ME00\Main.cb"
-API_AddGame("ME00")
+MAIN_AddGame("ME00")

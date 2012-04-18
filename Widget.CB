@@ -48,8 +48,8 @@ Function API_AddWidget(widgetType,visible=1)
 			
 		ElseIf  widgetType = API_WIDGET_TIMER Then 
 		
-			w\width = 150
-			w\height = 60
+			w\width = 205
+			w\height = 40
 		
 		EndIf 
 		
@@ -82,7 +82,7 @@ EndFunction
 //Asettaa tai palauttaa merkkijonon
 Function API_WidgetString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!")
 	w.MAIN_Widget = ConvertToType(widget)
-	value$ = MAIN_MemFloat(w\widgetData, dataField, value$)
+	value$ = MAIN_MemString(w\widgetData, dataField, value$)
 	w\widgetData = MAIN_MemChangedAddress
 	Return value$
 EndFunction
@@ -159,21 +159,30 @@ Function API_PositionWidget(widget, position = 0, y = 0)
 EndFunction 
 
 //Piirtää näkyvät widgetit
-Function MAIN_DrawWidgets()
+Function MAIN_DrawWidgets(showAreas = 0)
 
+	fontNormal = API_LoadFont("Courier",12) 
+	
 	For w.MAIN_WIDGET = Each MAIN_Widget
 	
 		If w\visible = 1  Then 
 	
 			If w\widgetType = API_WIDGET_PLAYERSCORE Then 
-
+			
 				If MAIN_PlayerAmount <> 0 Then 
 				
-					widthPerPlayer = w\width / MAIN_PlayerAmount
+					fontName = API_LoadFont("Deja Vu Sans Mono",14) 
+					fontPoints = API_LoadFont("Deja Vu Sans Mono",30)
+					
+					//Jos aiempaa ei löydy
+					If fontName = 0 Then fontName = API_LoadFont("Arial",14) 
+					If fontPoints = 0 Then fontPoints = API_LoadFont("Arial",30) 
+
+					widthPerPlayer = (w\width-10) / MAIN_PlayerAmount
 					
 					number = 0
 					
-					While number<MAIN_PlayerAmount 
+					While number < MAIN_PlayerAmount 
 
 						player = MAIN_PlayerData(number)
 						
@@ -181,9 +190,22 @@ Function MAIN_DrawWidgets()
 					
 							Color API_PlayerColor(number, RED), API_PlayerColor(number, GREEN), API_PlayerColor(number, BLUE)
 	
-							Text w\x + widthPerPlayer * number, w\y, API_PlayerName(number)
-							Text w\x + widthPerPlayer * number, w\y + 20, API_PlayerPoints(number)
-						
+							SetFont fontName
+							
+							name$ = API_PlayerName(number)
+							
+							nameWidth = TextWidth(name$)
+							
+							Text w\x + 5 + widthPerPlayer * number + widthPerPlayer / 2 - nameWidth / 2, w\y+25, name$
+							
+							SetFont fontPoints
+							
+							points$ = ""+API_PlayerPoints(number)
+							
+							pointsWidth = TextWidth(points$)
+							
+							Text w\x + 5 + widthPerPlayer * number + widthPerPlayer / 2 - pointsWidth / 2, w\y , points$
+							
 						EndIf 
 						
 						number = number + 1
@@ -193,21 +215,21 @@ Function MAIN_DrawWidgets()
 				
 				EndIf 
 				
-				Color cbwhite
-				
-				Box w\x,w\y,w\width,w\height,0
-		
-				
 			ElseIf  w\widgetType = API_WIDGET_TIMER Then 
+			
+				fontBig = API_LoadFont("OCR A Std",50) 
+				If fontBig = 0 Then fontBig = API_LoadFont("Arial",50) 
+				
+				SetFont fontBig 
 
 				Color cbwhite
 				
 				start = MAIN_MemInt(w\widgetData, API_WD_TIMER_START)
 				amount = MAIN_MemInt(w\widgetData, API_WD_TIMER_TIME)
 				
-				timeLeft = start + amount - Timer()
+				timeLeft = start + amount - API_Timer
 				
-				If timeLeft Then 
+				If timeLeft > 0 Then 
 				
 					seconds$ = (timeLeft / 1000)
 					milliseconds$ = timeLeft - int(seconds$) * 1000
@@ -223,22 +245,26 @@ Function MAIN_DrawWidgets()
 					Text w\x,w\y,seconds$+":"+milliseconds$
 					
 				Else 
-					Text w\x,w\y,"00:000"				
-				EndIf 
 				
-				Box w\x,w\y,w\width,w\height,0
-
-			Else
+					If (API_Timer / 350) Mod 2 = 0 Then 
+						Color 255,0,0
+						Text w\x,w\y,"00:000"
+					EndIf 
+					
+				EndIf 
 			
+			EndIf 
+			
+			If showAreas Then 
 				Color cbwhite
-			
 				Box w\x,w\y,w\width,w\height,0
-			
 			EndIf 
 		
 		EndIf 
 		
 	Next w
+	
+	SetFont fontNormal
 
 EndFunction 
 

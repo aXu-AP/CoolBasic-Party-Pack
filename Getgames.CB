@@ -58,7 +58,7 @@ Function GetGames(subdir$,startfile$,endfile$,includefile$)
 	f =	OpenToWrite(includefile$)
 	For g.game = Each game
 		WriteLine f,"Include "+Chr(34)+"Games\"+g\id+"\Main.cb"+Chr(34)
-		WriteLine f,"API_AddGame("+Chr(34)+g\id+Chr(34)+")"
+		WriteLine f,"MAIN_AddGame("+Chr(34)+g\id+Chr(34)+")"
 	Next g
 	CloseFile f
 		 
