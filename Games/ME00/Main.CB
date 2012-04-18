@@ -28,14 +28,14 @@ Function ME00_Game()
 
 	scoreWidget = API_AddWidget(API_WIDGET_PLAYERSCORE)
 	
-	API_PositionWidget(scoreWidget, API_POSITION_TOP)
+	API_PositionWidget(scoreWidget, API_POSITION_BOTTOM)
 	
 	timerWidget = API_AddWidget(API_WIDGET_TIMER)
 	
-	API_PositionWidget(timerWidget, API_POSITION_BOTTOM)
+	API_PositionWidget(timerWidget, API_POSITION_TOP)
 	
 	API_WidgetInt(timerWidget, API_WD_TIMER_START, Timer())
-	API_WidgetInt(timerWidget, API_WD_TIMER_TIME, 90000)
+	API_WidgetInt(timerWidget, API_WD_TIMER_TIME, 30000)
 	
 	PlayerCount = API_PlayerCount()
 	

@@ -59,7 +59,7 @@ Function API_DrawScreen()
 	
 	DrawToWorld OFF, OFF, OFF
 	
-	MAIN_DrawWidgets()
+	MAIN_DrawWidgets(1)
 	
 	//TODO: Simuloi hiirtä kokoruudulla
 

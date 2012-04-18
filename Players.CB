@@ -211,7 +211,7 @@ EndFunction
 Function API_PlayerString(number, dataField, value$ = "TOIVOTAANettäEItuleTÖRMÄYKSIÄtämänMERKKIJONONkanssa!!")
 	player = MAIN_PlayerData(number)
 	dynamic = PeekInt(player,MAIN_PLAYER_DYNAMIC)
-	sValue$ = MAIN_MemFloat(dynamic, dataField, value$)
+	sValue$ = MAIN_MemString(dynamic, dataField, value$)
 	PokeInt player, MAIN_PLAYER_DYNAMIC, MAIN_MemChangedAddress
 	Return sValue$
 EndFunction
