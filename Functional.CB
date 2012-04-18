@@ -108,8 +108,8 @@ Function API_Menu()
 	ClearKeys
 	ClearMouse 
 	
-	listData = API_WidgetListTextData("Lopeta minipeli,Aloita minipeli alusta,Lis‰‰ uusi pelaaja,Muokkaa pelaajan n‰pp‰imi‰")
-	listTemplate = API_WidgetListTemplate(2,2,API_RenderW/2,20)
+	listData = API_WidgetListItemData("Lopeta minipeli,Aloita minipeli alusta,Lis‰‰ uusi pelaaja,Muokkaa pelaajan n‰pp‰imi‰","")
+	listTemplate = API_WidgetListTemplate(2,2, 0, 0 ,API_RenderW/2,20)
 	list = API_WidgetList(listData, listTemplate, API_ORIENTATION_VERTICAL, API_POSITION_CENTER)
 
 	If MAIN_RunningGameID = "" Then 
@@ -135,6 +135,10 @@ Function API_Menu()
 				If i = 0  Then
 					MAIN_Stop()
 					MAIN_SelectGame()
+				ElseIf i = 1  Then
+					id$ = MAIN_RunningGameID 
+					MAIN_Stop()
+					MAIN_Start(id$ ,MAIN_GameData)
 				EndIf 
 				
 			EndIf 
