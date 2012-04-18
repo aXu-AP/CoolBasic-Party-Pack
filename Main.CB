@@ -11,6 +11,8 @@ Include "Gamesettings.cb"
 Include "Widget.cb"
 Include "Games.cb"          //Sis‰lt‰‰ kaiken minipelien hallintaa varten
 
+API_ResetToDefaults()
+
 MAIN_AddPlayer("Pelle pelaaja", 0, 255, 0)
 MAIN_AddPlayer("Fiia fr‰g‰‰j‰", 0, 0, 255)
 MAIN_AddPlayer("Jonne E. S.", 255, 0, 0)

@@ -251,6 +251,8 @@ Function MAIN_Start(ID$, GameData)
 	MAIN_GameData = GameData
 	API_ResetToDefaults()
 	MAIN_RunningGameID = ID$
+	MAIN_GameStartTimer = Timer()
+	API_Timer = 0
 	Include "Games\Start.cb"
 	MAIN_Stop()
 EndFunction

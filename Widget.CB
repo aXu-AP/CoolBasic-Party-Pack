@@ -227,7 +227,7 @@ Function MAIN_DrawWidgets(showAreas = 0)
 				start = MAIN_MemInt(w\widgetData, API_WD_TIMER_START)
 				amount = MAIN_MemInt(w\widgetData, API_WD_TIMER_TIME)
 				
-				timeLeft = start + amount - Timer()
+				timeLeft = start + amount - API_Timer
 				
 				If timeLeft > 0 Then 
 				
@@ -246,7 +246,7 @@ Function MAIN_DrawWidgets(showAreas = 0)
 					
 				Else 
 				
-					If (Timer() / 350) Mod 2 = 0 Then 
+					If (API_Timer / 350) Mod 2 = 0 Then 
 						Color 255,0,0
 						Text w\x,w\y,"00:000"
 					EndIf 

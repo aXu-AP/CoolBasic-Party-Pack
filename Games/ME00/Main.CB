@@ -34,7 +34,7 @@ Function ME00_Game()
 	
 	API_PositionWidget(timerWidget, API_POSITION_TOP)
 	
-	API_WidgetInt(timerWidget, API_WD_TIMER_START, Timer())
+	API_WidgetInt(timerWidget, API_WD_TIMER_START, API_Timer)
 	API_WidgetInt(timerWidget, API_WD_TIMER_TIME, 30000)
 	
 	PlayerCount = API_PlayerCount()
@@ -159,12 +159,8 @@ Function ME00_Game()
 		
 		API_DrawScreen()
 		
-		
-		
-	Until EscapeKey()
+	Forever 
 	
-	Return 0
-
 EndFunction
 
 Function ME00_End()
