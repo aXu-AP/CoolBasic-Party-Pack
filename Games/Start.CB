@@ -1,0 +1,8 @@
+Select ID$
+    Case "AX00"
+        AX00_Game()
+    Case "ME00"
+        ME00_Game()
+Default
+    MakeError "Peliä " + ID$ + " ei löytynyt!"
+EndSelect
