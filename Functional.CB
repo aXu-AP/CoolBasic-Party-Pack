@@ -85,7 +85,7 @@ Function API_DrawScreen()
 	EndIf
 	
 	//Menu
-	If KeyHit(1) Then API_Menu()
+	If KeyHit(1) Then MAIN_Menu()
 	
 	SetWindow "FPS: " + FPS()+" Running game: "+MAIN_RunningGameID
 	
@@ -97,7 +97,7 @@ EndFunction
 // TODO: - muokata näppäimiä 
 // TODO: - lisätä pelaajia
 // TODO: - käynnistää pelin alusta
-Function API_Menu()
+Function MAIN_Menu()
 
 	pauseStartTime = Timer()
 
@@ -129,7 +129,7 @@ Function API_Menu()
 		
 			listItem = API_GetListitem(list, i)
 			
-			If API_MouseOnWidget(listItem) And MouseHit(1) Then 
+			If MAIN_MouseOnWidget(listItem) And MouseHit(1) Then 
 			
 				//lopeta peli
 				If i = 0  Then
@@ -208,20 +208,20 @@ End Function
 
 
 //Hiiren x-koordinaatti renderöintikoordinaatistossa
-Function API_MouseX()
+Function MAIN_MouseX()
 	Return (MouseX()- MAIN_ScreenOffsetX) / MAIN_RenderZoom 
 EndFunction 
 
 //Hiiren y-koordinaatti renderöintikoordinaatistossa
-Function API_MouseY()
+Function MAIN_MouseY()
 	Return (MouseY()- MAIN_ScreenOffsetY) / MAIN_RenderZoom 
 EndFunction 
 
 //Palauttaa 1 jos hiiri on renderöintikoordinaatistossa
 //alueen päällä, hyvä käyttää käyttöliittymäelementeissä
-Function API_MouseInBox(x,y,w,h)
-	mx = API_MouseX()
-	my = API_MouseY()
+Function MAIN_MouseInBox(x,y,w,h)
+	mx = MAIN_MouseX()
+	my = MAIN_MouseY()
 	Return (mx >= x And mx < x+w And my >= y And my< y+h)
 EndFunction 
 

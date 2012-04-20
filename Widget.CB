@@ -302,14 +302,14 @@ Function API_GetListitem(listWidget, listItemNumber)
 
 EndFunction 
 
-Function API_MouseOnWidget(widget)
+Function MAIN_MouseOnWidget(widget)
 
 	If widget <> 0 Then 
 		w.MAIN_Widget = ConvertToType(widget)
 		If w <> NULL Then 
 			If w\visible Then 
-				mx = API_MouseX()
-				my = API_MouseY()
+				mx = MAIN_MouseX()
+				my = MAIN_MouseY()
 				w\hover = (mx >= w\x And mx < w\x + w\width And my >= w\y And my < w\y + w\height)
 			Else 
 				w\hover = 0
