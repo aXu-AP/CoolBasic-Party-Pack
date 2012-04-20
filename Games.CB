@@ -19,6 +19,8 @@ Type MAIN_Game
 	Field SupportHandicap    //Tukeeko peli helpotuksia? (YES/NO, oletus NO)
 	Field Difficulty         //Pelin vaikeustaso (1, 2 tai 3), 0 jos tukee useita
 	
+	Field FPSIndependent     //Onko FPS-riippumatonta
+	
 	Field Logo
 EndType
 
@@ -57,6 +59,8 @@ Function MAIN_AddGame(ID$)
 		nG\Difficulty = -1
 	EndIf
 	
+	nG\FPSIndependent = (Upper(Str(MAIN_GetSetting("FPSIndependent"))) = "YES")
+	
 	//Tarkistetaan, ettei samannimistä peliä ole vielä lisätty
 	For iG.MAIN_Game = Each MAIN_Game
 		If iG <> nG And iG\Name = nG\Name Then MakeError "Pelikokoelmassa on samannimisiä pelejä: " + Name + "! (" + nG\ID + " ja " + iG\ID + ")"
@@ -79,6 +83,8 @@ Function MAIN_AddGame(ID$)
 	If nG\SupportAI <> 1 Then nG\SupportAI = False
 	If nG\SupportHandicap <> 1 Then nG\SupportHandicap = False
 	If nG\Difficulty < 0 Then nG\Difficulty = 2
+	
+	If nG\FPSIndependent <> 1 Then nG\FPSIndependent = False
 	
 	nG\Logo = LoadImage("Games/" + ID + "/logo.png")
 	
@@ -251,13 +257,23 @@ EndFunction
 
 //Aloittaa pelin
 Function MAIN_Start(ID$, GameData)
+	Game.MAIN_Game = ConvertToType(MAIN_GetGame(ID))
+	
 	MAIN_DeleteWidgets()
 	MAIN_GameData = GameData
 	API_ResetToDefaults()
-	MAIN_RunningGameID = ID$
+	MAIN_RunningGameID = ID
 	MAIN_GameStartTimer = Timer()
 	API_Timer = 0
+	
+	If Game\FPSIndependent Then
+		MAIN_LimitFPS = False
+	Else
+		MAIN_LimitFPS = True
+	EndIf
+	
 	Include "Games\Start.cb"
+	
 	MAIN_Stop()
 	MAIN_SelectGame()
 EndFunction

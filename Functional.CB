@@ -3,6 +3,8 @@ Global API_RenderW, API_RenderH, MAIN_RenderZoom
 Global MAIN_ScreenW, MAIN_ScreenH
 Global MAIN_MidImage, MAIN_FinImage, MAIN_ScreenOffsetX, MAIN_ScreenOffsetY
 
+Global MAIN_FrameStartTime, API_DeltaTime, MAIN_LimitFPS
+
 // pausen ja ajastimien vaatima pelin sisäinen aika muuttuja
 Global MAIN_GameStartTimer, API_Timer
 
@@ -90,6 +92,14 @@ Function API_DrawScreen()
 	SetWindow "FPS: " + FPS()+" Running game: "+MAIN_RunningGameID
 	
 	DrawScreen
+	
+	API_DeltaTime = Timer() - MAIN_FrameStartTime
+	If MAIN_LimitFPS Then
+		If API_DeltaTime <= 20 Then Wait 20 - API_DeltaTime
+		MAIN_FrameStartTime = Timer()
+		
+		API_DeltaTime = 20
+	EndIf
 EndFunction	
 
 
